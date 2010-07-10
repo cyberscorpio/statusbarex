@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<overlay id="StatusbarEx" 
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript" src="chrome://statusbarex/content/mainui.js"></script>
+	<script type="application/x-javascript">
+		<![CDATA[
+		window.addEventListener('load', onLoad, false);
+		]]>
+	</script>
+	<statusbar id="status-bar">
+		<statusbarpanel id="sbex-page" label="" onclick="on_click(event);" tooltiptext="" />
+		<statusbarpanel id="sbex-sys" label="" onclick="on_click(event);" tooltiptext="" />
+		<statusbarpanel id="sbex-fx" label="" onclick="on_click(event);" tooltiptext="" />
+		<statusbarpanel id="sbex-net" label="" onclick="on_click(event);" tooltiptext="" />
+		<!-- <statusbarpanel id="sbex-pwr-ac" class="statusbarpanel-iconic" label="" onclick="on_click(event);" tooltiptext="" /> -->
+		<statusbarpanel id="sbex-pwr" label="" onclick="on_click(event);" tooltiptext="">
+			<image id="sbex-pwr-img" style="padding-right: 3px" src=""/>
+			<label id="sbex-pwr-desc" />
+		</statusbarpanel>
+		<!-- 
+		<stack id="sbex-pwr-dc" onclick="on_click(event);" >
+			<progressmeter id="sbex-pwr-dc-prog" mode="determined" value="0%" />
+			<label id="sbex-pwr-dc-desc" value="" style="text-align:center;padding-top:3px;" />
+		</stack>
+		-->
+	</statusbar>
+</overlay>
+

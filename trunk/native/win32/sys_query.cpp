@@ -16,16 +16,15 @@
 //////////////////////////////////////////////////////////////////////////
 // helper function
 
-class sys_info_query_holder
-{
+class sys_info_query_holder {
 	friend class sys_info_query;
 
 	sys_info_query m_holder;
 
-	sys_info_query_holder(){}
+	sys_info_query_holder (){}
 
 public:
-	~sys_info_query_holder(){}
+	~sys_info_query_holder (){}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,8 +41,7 @@ public:
 
 
 typedef DWORD speed_type;
-struct t_if_record
-{
+struct t_if_record {
 //	DWORD time_stamp;
 	DWORD in_octets;
 	DWORD out_octets;
@@ -59,104 +57,101 @@ struct t_if_record
  * the dwOutOctets doesn't change on the ETHERNET,
  * so I must check the PPP connection....
  */
-inline static bool _row_filter(PMIB_IFROW row)
-{
-	return ((row->dwType == MIB_IF_TYPE_ETHERNET || row->dwType == MIB_IF_TYPE_PPP || row->dwType == MIB_IF_TYPE_FDDI) &&
-		(row->dwOperStatus == MIB_IF_OPER_STATUS_OPERATIONAL || row->dwOperStatus == MIB_IF_OPER_STATUS_CONNECTED) &&
+inline static bool _row_filter (PMIB_IFROW row) {
+	DWORD dwType = row->dwType;
+	DWORD dwOperStatus = row->dwOperStatus;
+	return ((dwType == MIB_IF_TYPE_ETHERNET || dwType == MIB_IF_TYPE_PPP || dwType == MIB_IF_TYPE_FDDI || dwType == IF_TYPE_IEEE80211) &&
+		(dwOperStatus == MIB_IF_OPER_STATUS_OPERATIONAL || dwOperStatus == MIB_IF_OPER_STATUS_CONNECTED) &&
 		(row->dwInOctets > 0 && row->dwOutOctets > 0));
 }
 
 const int MAX_INTERFACE_COUNT = 32;
-class ethernet_info
-{
+class ethernet_info {
 	// bool m_first_run;
 	DWORD m_tick;
 	DWORD m_current_count;
 	t_if_record m_records[MAX_INTERFACE_COUNT];
 
-
-
 public:
-	ethernet_info() : m_tick(0) // m_first_run(true)
-			, m_current_count(0)
+	ethernet_info () : m_tick(0) // m_first_run(true)
+	                 , m_current_count(0)
 	{
 		memset (m_records, 0, sizeof(m_records));
 	}
 
-	int get_count() const
-	{
+	int get_count () const {
 		return m_current_count;
 	}
 
-	speed_type get_in_speed(int index) const
-	{
-		if (index >= MAX_INTERFACE_COUNT)
+	speed_type get_in_speed (int index) const {
+		if (index >= MAX_INTERFACE_COUNT) {
 			return 0;
+		}
 		return m_records[index].in_speed;
 	}
 
-	speed_type get_out_speed(int index) const
-	{
-		if (index >= MAX_INTERFACE_COUNT)
+	speed_type get_out_speed (int index) const {
+		if (index >= MAX_INTERFACE_COUNT) {
 			return 0;
+		}
 		return m_records[index].out_speed;
 	}
 
-	void get_name(int index, std::wstring &name) const
-	{
-		if (index >= MAX_INTERFACE_COUNT)
+	void get_name (int index, std::wstring &name) const {
+		if (index >= MAX_INTERFACE_COUNT) {
 			return;
+		}
 		name = m_records[index].name;
 	}
 
 
-	void update(PMIB_IFTABLE tbl)
-	{
+	void update (PMIB_IFTABLE tbl) {
 		DWORD tick = GetTickCount();
-		if ((tick < m_tick))
+		if ((tick < m_tick)) {
 			reset();
+		}
 
 		DWORD count = 0;
 		DWORD dw;
-		for (dw = 0; dw < tbl->dwNumEntries; ++ dw)
-		{
+		for (dw = 0; dw < tbl->dwNumEntries; ++ dw) {
 			PMIB_IFROW row = tbl->table + dw;
 			if (_row_filter(row))
 				++ count;
 		}
-		if (count != m_current_count)
+		if (count != m_current_count) {
 			reset();
+		}
 
 		m_current_count = count;
-		if (m_current_count > MAX_INTERFACE_COUNT)
+		if (m_current_count > MAX_INTERFACE_COUNT) {
 			m_current_count = MAX_INTERFACE_COUNT;
+		}
 
 #ifdef _DEBUG
 		char buf[1024] = {0};
 		char temp[256] = {0};
 #endif
 		count = 0;
-		for (dw = 0; dw < tbl->dwNumEntries; ++ dw)
-		{
+		for (dw = 0; dw < tbl->dwNumEntries; ++ dw) {
 			PMIB_IFROW row = tbl->table + dw;
 #ifdef _DEBUG
 			sprintf (temp, "eth%d (out:%d - in:%d - type:%d - status:%d - OutUcastPkts:%d - OutNUcastPkts:%d)  ", 
 				dw, row->dwOutOctets, row->dwInOctets, row->dwType, row->dwOperStatus, row->dwOutUcastPkts, row->dwOutNUcastPkts);
 			strcat(buf, temp);
 #endif
-			if (!_row_filter(row))
+			if (!_row_filter(row)) {
 				continue;
+			}
 
 			t_if_record* record = m_records + count;
 			++ count;
-			if (count == MAX_INTERFACE_COUNT)
+			if (count == MAX_INTERFACE_COUNT) {
 				break;
+			}
 
-			if (m_tick > 0)
-			{
+			if (m_tick > 0) {
 				record->in_speed = (row->dwInOctets - record->in_octets) * 1000 / (1024 * (tick - m_tick));
 				record->out_speed = (row->dwOutOctets - record->out_octets) * 1000 / (1024 * (tick - m_tick));
-
 			}
 
 			record->in_octets = row->dwInOctets;
@@ -174,8 +169,7 @@ public:
 		m_tick = tick;
 	}
 
-	void reset()
-	{
+	void reset () {
 		// m_first_run = true;
 		m_tick = 0;
 		m_current_count = 0;
@@ -195,8 +189,7 @@ public:
 	i64 |= ft.dwLowDateTime;\
 } while(0)
 
-class self_cpu_usage
-{
+class self_cpu_usage {
 	int m_self_cpu;
 	FILETIME m_create_time;
 	FILETIME m_exit_time;
@@ -204,16 +197,19 @@ class self_cpu_usage
 	FILETIME m_user_time;
 	DWORD m_record_tick;
 public:
-	self_cpu_usage(){memset(this, 0, sizeof(self_cpu_usage));}
-	void update();
+	self_cpu_usage () {
+		memset(this, 0, sizeof(self_cpu_usage));
+	}
 
-	int get_cpu_usage(){return m_self_cpu;}
+	void update ();
+
+	int get_cpu_usage () {
+		return m_self_cpu;
+	}
 };
 
-void self_cpu_usage::update()
-{
-	if (m_record_tick == 0)
-	{
+void self_cpu_usage::update () {
+	if (m_record_tick == 0) {
 		// first run, skip this round
 		::GetProcessTimes(
 			GetCurrentProcess(), 
@@ -222,17 +218,15 @@ void self_cpu_usage::update()
 			&m_kernel_time, 
 			&m_user_time);
 		m_record_tick = GetTickCount();
-	}
-	else
-	{
+	} else {
 		FILETIME kernel_time, user_time;
 		if (::GetProcessTimes(
-			GetCurrentProcess(), 
-			&m_create_time, 
-			&m_exit_time, 
-			&kernel_time, 
-			&user_time))
-		{
+		                      GetCurrentProcess(), 
+		                      &m_create_time, 
+		                      &m_exit_time, 
+		                      &kernel_time, 
+		                      &user_time
+		                     )) {
 			__int64 k, k_now;
 			GET_INT64_FROM_FILETIME(k, m_kernel_time);
 			GET_INT64_FROM_FILETIME(k_now, kernel_time);
@@ -245,15 +239,16 @@ void self_cpu_usage::update()
 
 			DWORD tick_now = GetTickCount();
 			m_self_cpu = ((int)(k + u)) / (tick_now - m_record_tick);
-			if (m_self_cpu > 100)
+			if (m_self_cpu > 100) {
 				m_self_cpu = 100;
+			}
 
 			m_record_tick = tick_now;
 			m_kernel_time = kernel_time;
 			m_user_time = user_time;
-		}
-		else
+		} else {
 			m_self_cpu = 0;
+		}
 	}
 }
 
@@ -264,7 +259,7 @@ static ethernet_info s_ei;
 static self_cpu_usage s_scu;
 
 
-sys_info_query::sys_info_query(void)
+sys_info_query::sys_info_query (void)
 	: m_hIphlpapi (NULL)
 	, m_hPsapi (NULL)
 	, m_hKernel32 (NULL)
@@ -281,109 +276,89 @@ sys_info_query::sys_info_query(void)
 	m_hIphlpapi = ::LoadLibrary(TEXT("Iphlpapi.dll"));
 	m_hPsapi = ::LoadLibrary(TEXT("Psapi.dll"));
 	m_hKernel32 = ::LoadLibrary(TEXT("Kernel32.dll"));
-	if (m_hIphlpapi)
-	{
+	if (m_hIphlpapi) {
 		m_pfnGetIfTable = (PTR_GetIfTable)GetProcAddress(m_hIphlpapi, "GetIfTable");
 	}
-	if (m_hPsapi)
-	{
+	if (m_hPsapi) {
 		m_pfnGetProcessMemoryInfo = (PTR_GetProcessMemoryInfo)GetProcAddress(m_hPsapi, "GetProcessMemoryInfo");
 	}
-	if (m_hKernel32)
-	{
+	if (m_hKernel32) {
 		m_pfnGlobalMemoryStatusEx = (PTR_GlobalMemoryStatusEx)GetProcAddress(m_hKernel32, "GlobalMemoryStatusEx");
 	}
-
 
 	_beginthreadex(NULL, 0, update_thread, this, 0, NULL);
 }
 
-sys_info_query::~sys_info_query(void)
-{
-	if (m_hIphlpapi)
-	{
+sys_info_query::~sys_info_query (void) {
+	if (m_hIphlpapi) {
 		FreeLibrary(m_hIphlpapi);
 	}
 
-	if (m_hPsapi)
-	{
+	if (m_hPsapi) {
 		FreeLibrary(m_hPsapi);
 	}
 }
 
 
-sys_info_query* sys_info_query::get_instance()
-{
+sys_info_query* sys_info_query::get_instance () {
 	static sys_info_query_holder nqh;
 	return &(nqh.m_holder);
 }
 
 
-int sys_info_query::get_ethernet_count() const
-{
+int sys_info_query::get_ethernet_count () const {
 	//LOCK();
 	return s_ei.get_count();
 	//UNLOCK();
 }
 
-int sys_info_query::get_in_speed(int index) const
-{
+int sys_info_query::get_in_speed (int index) const {
 	//LOCK();
 	return s_ei.get_in_speed(index);
 	//UNLOCK();
 }
 
-int sys_info_query::get_out_speed(int index) const
-{
+int sys_info_query::get_out_speed (int index) const {
 	//LOCK();
 	return s_ei.get_out_speed(index);
 	//UNLOCK();
 }
 
-void sys_info_query::get_ethernet_name(int index, std::wstring &name) const
-{
+void sys_info_query::get_ethernet_name (int index, std::wstring &name) const {
 	s_ei.get_name(index, name);
 	return;
 }
 
 
-void sys_info_query::get_fx_memory(int *usage, int *vm_size)
-{
+void sys_info_query::get_fx_memory (int *usage, int *vm_size) {
 	assert (usage && vm_size);
 	*usage = 0;
 	*vm_size = 0;
 
-	if (m_pfnGetProcessMemoryInfo)
-	{
+	if (m_pfnGetProcessMemoryInfo) 	{
 		PROCESS_MEMORY_COUNTERS pmc;
 		pmc.cb = sizeof(pmc);
-		if ((*m_pfnGetProcessMemoryInfo)(GetCurrentProcess(), &pmc, sizeof(pmc)))
-		{
+		if ((*m_pfnGetProcessMemoryInfo)(GetCurrentProcess(), &pmc, sizeof(pmc))) {
 			*usage = (int)(pmc.WorkingSetSize / (1024 * 1024));
 			*vm_size = (int)(pmc.PagefileUsage / (1024 * 1024));
 		}
 	}
 }
 
-int sys_info_query::get_fx_cpu_usage()
-{
+int sys_info_query::get_fx_cpu_usage () {
 	return s_scu.get_cpu_usage();
 }
 
 
-void sys_info_query::get_global_memory_status(int *total_memory, int *free_memory)
-{
+void sys_info_query::get_global_memory_status (int *total_memory, int *free_memory) {
 	MEMORYSTATUSEX ms;
 	ms.dwLength = sizeof(ms);
-	if (m_pfnGlobalMemoryStatusEx)
-	{
+	if (m_pfnGlobalMemoryStatusEx) {
 		(*m_pfnGlobalMemoryStatusEx)(&ms);
 		
 		*total_memory = (int)(ms.ullTotalPhys / (1024 * 1024));
 		*free_memory = (int)(ms.ullAvailPhys / (1024 * 1024));
-	}
-	else
-	{
+	} else {
 		*total_memory = -1;
 		*free_memory = -1;
 	}
@@ -394,24 +369,19 @@ void sys_info_query::get_global_memory_status(int *total_memory, int *free_memor
 
 //////////////////////////////////////////////////////////////////////////
 
-unsigned __stdcall sys_info_query::update_thread(void* pArg)
-{
+unsigned __stdcall sys_info_query::update_thread (void* pArg) {
 	PMIB_IFTABLE pIfTable = NULL;
 	ULONG ulTableLen = 0;
 
 	sys_info_query *pThis = (sys_info_query *)pArg;
 	assert (pThis);
 
-	for (;;)
-	{
+	for (;;) {
 		// Update the network speed
-		if (pThis->m_pfnGetIfTable)
-		{
+		if (pThis->m_pfnGetIfTable) {
 			DWORD result = (*(pThis->m_pfnGetIfTable))(pIfTable, &ulTableLen, TRUE);
-			if (result == ERROR_INSUFFICIENT_BUFFER)
-			{
-				if (pIfTable != NULL)
-				{
+			if (result == ERROR_INSUFFICIENT_BUFFER) {
+				if (pIfTable != NULL) {
 					delete []pIfTable;
 					pIfTable = NULL;
 				}
@@ -419,12 +389,9 @@ unsigned __stdcall sys_info_query::update_thread(void* pArg)
 				pIfTable = (PMIB_IFTABLE) new char[ulTableLen];
 				result = (*(pThis->m_pfnGetIfTable))(pIfTable, &ulTableLen, TRUE);
 			}
-			if (result == ERROR_SUCCESS)
-			{
+			if (result == ERROR_SUCCESS) {
 				s_ei.update(pIfTable);
-			}
-			else
-			{
+			} else {
 				s_ei.reset();
 			}
 		}

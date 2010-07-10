@@ -1,0 +1,18 @@
+<!ENTITY options.prefwindow.statusbarex "StatusbarEx options:   ">
+<!ENTITY options.text.statusbarex "StatusbarEx">
+<!ENTITY options.caption.select.text "Select text color:">
+<!ENTITY options.caption.show.page.info "Show page info:">
+<!ENTITY options.checkbox.show.time "show time current page last modified.">
+<!ENTITY options.caption.show.memory "Show memory info:">
+<!ENTITY options.checkbox.show.available "show memory available.">
+<!ENTITY options.checkbox.show.total "show total memory amount.">
+<!ENTITY options.caption.show.fx.info "Show Fx info:">
+<!ENTITY options.checkbox.mem.usage "show firefox memory usage.">
+<!ENTITY options.checkbox.cpu.usage "show firefox cpu usage.">
+<!ENTITY options.caption.show.power.one "Show power status:">
+<!ENTITY options.checkbox.show.power.two "show power status.">
+<!ENTITY options.caption.show.speed "Show network adapter speed (up to 5):">
+<!ENTITY options.checkbox.show.adapter "show speed of adapter">
+<!ENTITY options.caption.display.setting "Display setting:">
+<!ENTITY options.checkbox.fix.string.len "fix string length.">
+<!ENTITY options.checkbox.compact.mode "compact mode.">

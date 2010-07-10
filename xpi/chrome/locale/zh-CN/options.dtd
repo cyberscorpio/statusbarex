@@ -1,0 +1,18 @@
+﻿<!ENTITY options.prefwindow.statusbarex "StatusbarEx 选项:   ">
+<!ENTITY options.text.statusbarex "StatusbarEx">
+<!ENTITY options.caption.select.text "选择字体颜色">
+<!ENTITY options.caption.show.page.info "显示页面信息:">
+<!ENTITY options.checkbox.show.time "显示当前页面的修改时间.">
+<!ENTITY options.caption.show.memory "显示内存信息:">
+<!ENTITY options.checkbox.show.available "显示可用内存数.">
+<!ENTITY options.checkbox.show.total "显示内存总数.">
+<!ENTITY options.caption.show.fx.info "显示 firefox 信息:">
+<!ENTITY options.checkbox.mem.usage "显示 firefox 的内存占用.">
+<!ENTITY options.checkbox.cpu.usage "显示 firefox 的 CPU 占用.">
+<!ENTITY options.caption.show.power.one "显示电源状态:">
+<!ENTITY options.checkbox.show.power.two "显示电源状态.">
+<!ENTITY options.caption.show.speed "显示计算机的当前网速 (最多显示5个网络连接，用#0,#1,...来区分):">
+<!ENTITY options.checkbox.show.adapter "显示网络连接速度">
+<!ENTITY options.caption.display.setting "设置:">
+<!ENTITY options.checkbox.fix.string.len "固定字符串长度.">
+<!ENTITY options.checkbox.compact.mode "紧凑模式.">

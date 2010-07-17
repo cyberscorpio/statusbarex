@@ -44,6 +44,9 @@ class NS_NO_VTABLE NS_SCRIPTABLE IStatusbarExCore : public nsISupports {
   /* void GetFxCpuUsage (out long cpu_usage); */
   NS_SCRIPTABLE NS_IMETHOD GetFxCpuUsage(PRInt32 *cpu_usage NS_OUTPARAM) = 0;
 
+  /* void GetSysCpuUsage (out long sys_cpu_usage); */
+  NS_SCRIPTABLE NS_IMETHOD GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM) = 0;
+
   /* long GetEthernetCount (); */
   NS_SCRIPTABLE NS_IMETHOD GetEthernetCount(PRInt32 *_retval NS_OUTPARAM) = 0;
 
@@ -82,6 +85,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IStatusbarExCore : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetMemoryStatus(PRInt32 *total_memory NS_OUTPARAM, PRInt32 *free_memory NS_OUTPARAM); \
   NS_SCRIPTABLE NS_IMETHOD GetFxMemory(PRInt32 *usage NS_OUTPARAM, PRInt32 *vm_size NS_OUTPARAM); \
   NS_SCRIPTABLE NS_IMETHOD GetFxCpuUsage(PRInt32 *cpu_usage NS_OUTPARAM); \
+  NS_SCRIPTABLE NS_IMETHOD GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM); \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetCount(PRInt32 *_retval NS_OUTPARAM); \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetSpeed(PRInt32 index, PRInt32 *in_speed NS_OUTPARAM, PRInt32 *out_speed NS_OUTPARAM); \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetName(PRInt32 index, nsAString & name NS_OUTPARAM); \
@@ -92,6 +96,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IStatusbarExCore : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetMemoryStatus(PRInt32 *total_memory NS_OUTPARAM, PRInt32 *free_memory NS_OUTPARAM) { return _to GetMemoryStatus(total_memory, free_memory); } \
   NS_SCRIPTABLE NS_IMETHOD GetFxMemory(PRInt32 *usage NS_OUTPARAM, PRInt32 *vm_size NS_OUTPARAM) { return _to GetFxMemory(usage, vm_size); } \
   NS_SCRIPTABLE NS_IMETHOD GetFxCpuUsage(PRInt32 *cpu_usage NS_OUTPARAM) { return _to GetFxCpuUsage(cpu_usage); } \
+  NS_SCRIPTABLE NS_IMETHOD GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM) { return _to GetSysCpuUsage(sys_cpu_usage); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetCount(PRInt32 *_retval NS_OUTPARAM) { return _to GetEthernetCount(_retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetSpeed(PRInt32 index, PRInt32 *in_speed NS_OUTPARAM, PRInt32 *out_speed NS_OUTPARAM) { return _to GetEthernetSpeed(index, in_speed, out_speed); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetName(PRInt32 index, nsAString & name NS_OUTPARAM) { return _to GetEthernetName(index, name); } \
@@ -102,6 +107,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IStatusbarExCore : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetMemoryStatus(PRInt32 *total_memory NS_OUTPARAM, PRInt32 *free_memory NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetMemoryStatus(total_memory, free_memory); } \
   NS_SCRIPTABLE NS_IMETHOD GetFxMemory(PRInt32 *usage NS_OUTPARAM, PRInt32 *vm_size NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetFxMemory(usage, vm_size); } \
   NS_SCRIPTABLE NS_IMETHOD GetFxCpuUsage(PRInt32 *cpu_usage NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetFxCpuUsage(cpu_usage); } \
+  NS_SCRIPTABLE NS_IMETHOD GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetSysCpuUsage(sys_cpu_usage); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetCount(PRInt32 *_retval NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetEthernetCount(_retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetSpeed(PRInt32 index, PRInt32 *in_speed NS_OUTPARAM, PRInt32 *out_speed NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetEthernetSpeed(index, in_speed, out_speed); } \
   NS_SCRIPTABLE NS_IMETHOD GetEthernetName(PRInt32 index, nsAString & name NS_OUTPARAM) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetEthernetName(index, name); } \
@@ -153,6 +159,12 @@ NS_IMETHODIMP _MYCLASS_::GetFxMemory(PRInt32 *usage NS_OUTPARAM, PRInt32 *vm_siz
 
 /* void GetFxCpuUsage (out long cpu_usage); */
 NS_IMETHODIMP _MYCLASS_::GetFxCpuUsage(PRInt32 *cpu_usage NS_OUTPARAM)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void GetSysCpuUsage (out long sys_cpu_usage); */
+NS_IMETHODIMP _MYCLASS_::GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

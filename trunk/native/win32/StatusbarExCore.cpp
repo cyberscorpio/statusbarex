@@ -101,7 +101,14 @@ NS_IMETHODIMP StatusbarExCore::GetFxCpuUsage (PRInt32 *cpu_usage NS_OUTPARAM) {
 	return NS_OK;
 }
 
+/* void GetSysCpuUsage (out long sys_cpu_usage); */
+NS_IMETHODIMP StatusbarExCore::GetSysCpuUsage(PRInt32 *sys_cpu_usage NS_OUTPARAM) {
+	assert (sys_cpu_usage);
 
+	sys_info_query *eq = sys_info_query::get_instance();
+	*sys_cpu_usage = eq->get_sys_cpu_usage();
+	return NS_OK;
+}
 
 
 /* long GetEthernetCount (); */

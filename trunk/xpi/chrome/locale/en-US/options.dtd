@@ -3,9 +3,10 @@
 <!ENTITY options.caption.select.text "Select text color:">
 <!ENTITY options.caption.show.page.info "Show page info:">
 <!ENTITY options.checkbox.show.time "show time current page last modified.">
-<!ENTITY options.caption.show.memory "Show memory info:">
+<!ENTITY options.caption.show.memory "Show system info:">
 <!ENTITY options.checkbox.show.available "show memory available.">
 <!ENTITY options.checkbox.show.total "show total memory amount.">
+<!ENTITY options.checkbox.show.syscpu "show system cpu usage.">
 <!ENTITY options.caption.show.fx.info "Show Fx info:">
 <!ENTITY options.checkbox.mem.usage "show firefox memory usage.">
 <!ENTITY options.checkbox.cpu.usage "show firefox cpu usage.">

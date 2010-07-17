@@ -17,6 +17,7 @@ interface IStatusbarExCore : nsISupports
 	void GetMemoryStatus(out long total_memory, out long free_memory);
 	void GetFxMemory(out long usage, out long vm_size);
 	void GetFxCpuUsage(out long cpu_usage);
+	void GetSysCpuUsage(out long sys_cpu_usage);
 
 	long GetEthernetCount();
 	void GetEthernetSpeed(in long index, out long in_speed, out long out_speed);

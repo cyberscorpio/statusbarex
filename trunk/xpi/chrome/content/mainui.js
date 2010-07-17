@@ -1,72 +1,98 @@
-var gstatusbarexBundle = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
-var mystrings = gstatusbarexBundle.createBundle("chrome://statusbarex/locale/main.properties");
-var main_charging = mystrings.GetStringFromName("main_charging");
-var main_aclineon = mystrings.GetStringFromName("main_aclineon");
-var main_batteryremaining = mystrings.GetStringFromName("main_batteryremaining");
-var main_getpowerstatusmeter8 = mystrings.GetStringFromName("main_getpowerstatusmeter8");
-var main_statusbarexupdatefail9 = mystrings.GetStringFromName("main_statusbarexupdatefail9");
-var main_empty = mystrings.GetStringFromName("main_empty");
-var main_lastmodified = mystrings.GetStringFromName("main_lastmodified");
-var main_loading = mystrings.GetStringFromName("main_loading");
-var main_lastmodified = mystrings.GetStringFromName("main_lastmodified");
-var main_statusbarexattribute = mystrings.GetStringFromName("main_statusbarexattribute");
-var main_memoryavailable = mystrings.GetStringFromName("main_memoryavailable");
-var main_totalmemory = mystrings.GetStringFromName("main_totalmemory");
-var main_memoryfirefoxused = mystrings.GetStringFromName("main_memoryfirefoxused");
-var main_firefoxcpuusage = mystrings.GetStringFromName("main_firefoxcpuusage");
-var main_downup = mystrings.GetStringFromName("main_downup");
-var main_downup = mystrings.GetStringFromName("main_downup");
-var main_statusbarexupdatetoo16 = mystrings.GetStringFromName("main_statusbarexupdatetoo16");
-var main_statusbarexprefchanged = mystrings.GetStringFromName("main_statusbarexprefchanged");
-
-
-const _SBEX_CC = Components.classes;
+/**
+ The available string IDs:
+	main_charging 
+	main_aclineon 
+	main_batteryremaining 
+	main_statusbarexupdatefail 
+	main_empty 
+	main_lastmodified 
+	main_loading 
+	main_lastmodified 
+	main_memoryavailable 
+	main_totalmemory 
+	main_cpuusage
+	main_memoryfirefoxused 
+	main_firefoxcpuusage 
+	main_downup 
+	main_downup 
+	main_statusbarexupdatetool
+ */
 
 const SBEX_UPDATE_RATE = 1000;
 const SBEX_DUMP_FOR_EVERY_N_REQUEST = 10;
 const SBEX_MAX_ETH_COUNT = 5;
 
-var text_color = '#000000';
-var show_page = false;
-var show_memory = true;
-var show_totalmemory = true;
-var show_fxmemory = true;
-var show_fxcpu = true;
-var show_ethN = new Array();
-var ethN_name_got = false;
-var fixed_length = true;
-var compact_mode = false;
-var sbVersion = '0';
-var show_pwr = true;
 
-var pwr_ac = -1;
-var pwr_flag = -1;
+if ("undefined" == typeof(StatusbarEx)) {
+	var StatusbarEx = {
+		init : function() {
+			const Cc = Components.classes;
+			const Ci = Components.interfaces;
+			this.logger = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
+			var sbundle = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService);
+			this.strings = sbundle.createBundle("chrome://statusbarex/locale/main.properties");
+			this.sm = Cc["@doudehou/statusbarEx;1"].createInstance(Ci.IStatusbarExCore);
+
+			// variables
+			this.text_color = '#000000';
+			this.show_page = false;
+			this.show_memory = true;
+			this.show_totalmemory = true;
+			this.show_syscpu = true;
+			this.show_fxmemory = true;
+			this.show_fxcpu = true;
+			this.show_ethN = new Array();
+			this.ethN_name_got = false;
+			this.fixed_length = true;
+			this.compact_mode = false;
+			this.sbVersion = '0';
+			this.show_pwr = true;
+			this.pwr_ac = -1;
+			this.pwr_flag = -1;
+
+			this.paneIds = ['sbex-page', 'sbex-sys', 'sbex-fx', 'sbex-net', 'sbex-pwr'];
+
+			// methods
+			this.dump = function(str) {
+				var d = new Date();
+				var dump_str = d.toTimeString() + ":" + str;
+				this.logger.logStringMessage(dump_str);
+			}
+		
+			this.getString = function(name) {
+				try {
+					var str = this.strings.GetStringFromName(name);
+				} catch (e) {
+					var txt = e.message + " (" + name + ") is invalid";
+					this.dump(txt);
+					// alert(txt);
+				}
+				return str;
+			}
+
+			this.addClickHandler = function () {
+				try {
+					for (index in this.paneIds) {
+						var pane = document.getElementById(this.paneIds[index]);
+						pane.addEventListener('click', function(e) {StatusbarEx.onClick(e);}, false);
+					}
+				} catch (e) {
+					alert (e.message);
+					this.dump(e.message);
+				}
+			}
+
+		}
+	};
 
 
-
-function jsdump(str)
-{
-	if (false) // turn off dump when release.
-	{
-		var d = new Date();
-		var dump_str = d.toTimeString() + ":" + str;
-		_SBEX_CC['@mozilla.org/consoleservice;1'].getService(Components.interfaces.nsIConsoleService).logStringMessage(dump_str);
-	}
+	(function() {
+		this.init();
+	}).apply(StatusbarEx);
 }
 
-function fix_string_length(str, len)
-{
-	if (fixed_length)
-	{
-		while (str.length < len)
-			str = " " + str;
-	}
-	return str;
-}
 
-
-function sbexShowHomePage()
-{
+function sbexShowHomePage() {
 	getBrowser().removeEventListener('load', sbexShowHomePage, true);
 	var homepg = 'http://www.xilou.us/home/statusbarex';
 	
@@ -74,106 +100,122 @@ function sbexShowHomePage()
 }
 
 
-function show_system_info(sm)
-{
+StatusbarEx.show_system_info = function () {
 	var txt = "";
 
-	if (show_memory || show_totalmemory)
-	{
+	if (this.show_memory || this.show_totalmemory || this.show_syscpu) {
 		var mem1 = {value:0};
 		var mem2 = {value:0};
-		sm.GetMemoryStatus(mem1, mem2);
+		this.sm.GetMemoryStatus(mem1, mem2);
+		var syscpu = {value:0};
+		this.sm.GetSysCpuUsage(syscpu);
 
-		if (show_memory)
-		{
+		if (this.show_memory) {
 			txt += mem2.value.toString() + "M";
-			if (show_totalmemory)
+			if (this.show_totalmemory) {
 				txt += "/" + mem1.value.toString() + "M";
-		}
-		else
+			}
+		} else if (this.show_totalmemory) {
 			txt += mem1.value.toString() + "M";				
+		}
+
+		if (this.show_syscpu) {
+			if (txt.length > 0) {
+				txt += " ";
+			}
+			txt += syscpu.value.toString() + "%";
+		}
 
 		document.getElementById('sbex-sys').label = txt;
 	}
 }
 
 
-function show_fx_info(sm)
-{
+StatusbarEx.show_fx_info = function () {
 	var txt = "";
 
-	if (show_fxmemory || show_fxcpu)
-	{
+	if (this.show_fxmemory || this.show_fxcpu) {
 		var val = {value:0};
-		txt = compact_mode ? "" : "Fx:["
+		txt = this.compact_mode ? "" : "Fx:["
 		
-		if (show_fxmemory)
-		{
+		if (this.show_fxmemory) {
 			var vm_size = {value:0};
-			sm.GetFxMemory(val, vm_size);
+			this.sm.GetFxMemory(val, vm_size);
 			txt += val.value.toString() + "M";// + "/" + vm_size.value.toString() + "M";
 			
-			if (show_fxcpu)
+			if (this.show_fxcpu) {
 				txt += ' ';
+			}
 		}
 
-		if (show_fxcpu)
-		{
-			sm.GetFxCpuUsage(val);
-			txt += fix_string_length(val.value.toString(), 2) + "%";
+		if (this.show_fxcpu) {
+			this.sm.GetFxCpuUsage(val);
+			txt += val.value.toString() + "%";
 		}
 		
-		txt += compact_mode ? "" : "]"
+		txt += this.compact_mode ? "" : "]"
 		document.getElementById('sbex-fx').label = txt;
 	}
 }
 
 
-function show_network_info(sm)
-{
+StatusbarEx.show_network_info = function () {
 	var txt = "";
 
-	var cnt = sm.GetEthernetCount();
-	if (cnt > SBEX_MAX_ETH_COUNT)
+	var cnt = this.sm.GetEthernetCount();
+	if (cnt > SBEX_MAX_ETH_COUNT) {
 		cnt = SBEX_MAX_ETH_COUNT;
+	}
 	var i = 0;
-	var fix_len = 0;
 	var sep = "";
-	for (; i < cnt; ++ i)
-	{
-		if (show_ethN[i])
-		{
-			var temp_text = '';
+	for (; i < cnt; ++ i) {
+		if (this.show_ethN[i]) {
+			var temp_text = "";
 			var in_speed = {value:0};
 			var out_speed = {value:0};
-			sm.GetEthernetSpeed(i, in_speed, out_speed);
-			var inString = in_speed.value.toString() + 'K';
-			var outString = out_speed.value.toString() + 'K';
+			this.sm.GetEthernetSpeed(i, in_speed, out_speed);
+			// in
+			var inString = '';
+			if (in_speed.value < 1024) {
+				inString = in_speed.value.toString() + 'B';
+			} else if (in_speed.value < 1024 * 1024) {
+				inString = (in_speed.value / 1024).toFixed().toString() + 'K';
+			} else {
+				inString = (in_speed.value / (1024 * 1024)).toFixed(2).toString() + 'M';
+			}
+			// out
+			var outString = '';
+			if (out_speed.value < 1024) {
+				outString = out_speed.value.toString() + 'B';
+			} else if (out_speed.value < 1024 * 1024) {
+				outString = (out_speed.value / 1024).toFixed().toString() + 'K';
+			} else {
+				outString = (out_speed.value / (1024 * 1024)).toFixed(2).toString() + 'M';
+			}
 
-			if (compact_mode)
-				temp_text = " #" + i.toString() + " " + inString + "/" + outString + sep;
-			else
-				temp_text = " #" + i.toString() + "[D:" + inString + " - U:" + outString + "]" + sep;
+			if (this.compact_mode) {
+				temp_text = sep + "#" + i.toString() + " " + inString + "/" + outString;
+			} else {
+				temp_text = sep + "#" + i.toString() + "[D:" + inString + " - U:" + outString + "]";
+			}
 
-			fix_len = temp_text.length - inString.length - outString.length;
-			txt += fix_string_length(temp_text, fix_len + 4 + 4);
+			txt += temp_text;
 			sep = " ";
 		}
 	}
 	document.getElementById('sbex-net').label = txt;
 
-	if (!ethN_name_got)
-		updateTooltip();
+	if (!this.ethN_name_got) {
+		this.updateTooltip();
+	}
 }
 
 
-function show_power_info(sm)
-{
+StatusbarEx.show_power_info = function () {
 	var txt = "";
 
 	// power
-	if (show_pwr)
-	{
+	if (this.show_pwr) {
 		var panel_pwr = document.getElementById('sbex-pwr');
 		var panel_pwr_img = document.getElementById('sbex-pwr-img');
 		var panel_pwr_desc = document.getElementById('sbex-pwr-desc');
@@ -184,55 +226,48 @@ function show_power_info(sm)
 		var hour = {value:0};
 		var minute = {value:0};
 		var second = {value:0};
-		sm.GetPowerStatus(ac, btyFlag, btyLifePercent, btyLifeTime, hour, minute, second);
+		this.sm.GetPowerStatus(ac, btyFlag, btyLifePercent, btyLifeTime, hour, minute, second);
 
-		if (ac.value == 1) // AC on line
-		{
-			if (btyFlag.value & 8) // charging
-			{
+		if (ac.value == 1) { // AC on line
+			if (btyFlag.value & 8) { // charging
 				panel_pwr_img.src = "chrome://statusbarex/content/charging.gif";
-				panel_pwr.setAttribute('tooltiptext', main_charging)
-				panel_pwr_img.setAttribute('tooltiptext', main_charging)
-				panel_pwr_desc.setAttribute('tooltiptext', main_charging)
+				panel_pwr.setAttribute('tooltiptext', this.getString("main_charging"));
+				panel_pwr_img.setAttribute('tooltiptext', this.getString("main_charging"));
+				panel_pwr_desc.setAttribute('tooltiptext', this.getString("main_charging"));
 
 				var percent = btyLifePercent.value;
 				panel_pwr_desc.style.display="";
-				panel_pwr_desc.value = fix_string_length(percent.toString(),3) + "%";
-			}
-			else
-			{
+				panel_pwr_desc.value = percent.toString() + "%";
+			} else {
 				panel_pwr_img.src = "chrome://statusbarex/content/ac.png";
-				panel_pwr.setAttribute('tooltiptext', main_aclineon)
-				panel_pwr_img.setAttribute('tooltiptext', main_aclineon)
+				panel_pwr.setAttribute('tooltiptext', this.getString("main_aclineon"));
+				panel_pwr_img.setAttribute('tooltiptext', this.getString("main_aclineon"));
 				panel_pwr_desc.style.display="none";
 				// panel_pwr_desc.setAttribute('tooltiptext', "AC line on")
 			}
-		}
-		else if (ac.value == 0) // AC off line
-		{
+		} else if (ac.value == 0) { // AC off line
 			var percent = btyLifePercent.value;
-			if (percent > 100)
+			if (percent > 100) {
 				percent = 100;
-			if (percent < 10)
+			}
+			if (percent < 10) {
 				panel_pwr_img.src = "chrome://statusbarex/content/battery-empty.png";
-			else if(percent < 30)
+			} else if(percent < 30) {
 				panel_pwr_img.src = "chrome://statusbarex/content/battery-low.png";
-			else if(percent < 85)
+			} else if(percent < 85) {
 				panel_pwr_img.src = "chrome://statusbarex/content/battery-middle.png";
-			else
+			} else {
 				panel_pwr_img.src = "chrome://statusbarex/content/battery-high.png";
-			panel_pwr.setAttribute('tooltiptext', main_batteryremaining + percent.toString() + "%");
-			panel_pwr_img.setAttribute('tooltiptext', main_batteryremaining + percent.toString() + "%");
+			}
+			panel_pwr.setAttribute('tooltiptext', this.getString("main_batteryremaining") + percent.toString() + "%");
+			panel_pwr_img.setAttribute('tooltiptext', this.getString("main_batteryremaining") + percent.toString() + "%");
 
 			panel_pwr_desc.style.display="";
-			panel_pwr_desc.setAttribute('tooltiptext', main_batteryremaining + percent.toString() + "%");
-			panel_pwr_desc.value = fix_string_length(percent.toString(),2) + "%  " +
+			panel_pwr_desc.setAttribute('tooltiptext', this.getString("main_batteryremaining") + percent.toString() + "%");
+			panel_pwr_desc.value = percent.toString() + "%  " +
 				(hour.value <= 9 ? "0" : "") + hour.value.toString() + ":" + 
-				(minute.value <= 9 ? "0" : "") + minute.value.toString() + (compact_mode ? " hours" : "");
-		}
-		else
-		{
-			jsdump(main_getpowerstatusmeter8);
+				(minute.value <= 9 ? "0" : "") + minute.value.toString() + (this.compact_mode ? " hours" : "");
+		} else {
 		}
 
 	}
@@ -241,87 +276,66 @@ function show_power_info(sm)
 
 
 
-var dump_request = 0;
-function update_content()
-{
-	try
-	{
-		var sm = _SBEX_CC["@doudehou/statusbarEx;1"].createInstance(Components.interfaces.IStatusbarExCore);
-
-		show_system_info(sm);
-		show_fx_info(sm);
-		show_network_info(sm);
-		show_power_info(sm);
-
+StatusbarEx.update_content = function () {
+	try {
+		this.show_system_info();
+		this.show_fx_info();
+		this.show_network_info();
+		this.show_power_info();
 
 		return true;
-	}
-	catch (e)
-	{
-		var txt = main_statusbarexupdatefail9 + e.message + ">";
-		jsdump(txt);
+	} catch (e) {
+		var txt = this.getString("main_statusbarexupdatefail") + e.message + ">";
+		this.dump(txt);
 		return false;
 	}
 
 }
 
 
-function update_page_info(doc)
-{
+StatusbarEx.update_page_info = function (doc) {
 	var panel = document.getElementById('sbex-page');
 	var bReset = false;
-	try
-	{
-		if (doc.location.toString().search("about:") == 0)
-		{
-			// bReset = true;
-			panel.label = main_empty;
-			jsdump(">>>update_page_info() with:" + doc.location.toString());
-		}
-		else
-		{
+	try {
+		if (doc.location.toString().search("about:") == 0) {
+			panel.label = this.getString("main_empty");
+		} else {
 			panel.label = doc.lastModified;
 		}
 
-		panel.setAttribute('tooltiptext', main_lastmodified + doc.location.toString() + ")");
-	}
-	catch(e)
-	{
+		panel.setAttribute('tooltiptext', this.getString("main_lastmodified") + doc.location.toString() + ")");
+	} catch(e) {
 		bReset = true;
-		jsdump(">>>sbex_on_tabselect() error with <" + e.message + ">"); 
 	}
 
-	if (bReset)
-	{
-		try{
-			panel.label = main_loading;
-			panel.setAttribute('tooltiptext', main_lastmodified);
+	if (bReset) {
+		try {
+			panel.label = this.getString("main_loading");
+			panel.setAttribute('tooltiptext', this.getString("main_lastmodified"));
 		}
 		catch(e){}
 	}
 }
 
 
-function update_on_timer()
-{
-	if (update_content())
-		window.setTimeout(update_on_timer, SBEX_UPDATE_RATE);
-	else
-		window.setTimeout(update_on_timer, SBEX_UPDATE_RATE * 3); // try 3 seconds later.
+function sbex_update_on_timer() {
+	if (StatusbarEx.update_content()) {
+		window.setTimeout(sbex_update_on_timer, SBEX_UPDATE_RATE);
+	} else {
+		window.setTimeout(sbex_update_on_timer, SBEX_UPDATE_RATE * 3); // try 3 seconds later.
+	}
 }
 
-window.setTimeout(update_on_timer, SBEX_UPDATE_RATE);
+window.setTimeout(sbex_update_on_timer, SBEX_UPDATE_RATE);
 
 
 
-function showSbExOptions()
-{
+StatusbarEx.showSbExOptions = function () {
 	window.openDialog('chrome://statusbarex/content/options.xul','_blank','chrome,centerscreen,resizable=no,dialog=yes,close=no,dependent=yes').focus();
 }
 
-function on_click(e)
-{
-	showSbExOptions();
+StatusbarEx.onClick = function (e) {
+	this.showSbExOptions();
 }
 
 
@@ -329,10 +343,8 @@ function on_click(e)
 ///////////////////////////////////////////////////////////////////////////////////
 // const SBEX_STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
 const SBEX_STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
-var sbex_progListener =
-{
-	QueryInterface: function(aIID)
-	{
+var sbex_progListener = {
+	QueryInterface: function(aIID) {
 		if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
 			 aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
 			 aIID.equals(Components.interfaces.nsISupports))
@@ -340,34 +352,33 @@ var sbex_progListener =
 		throw Components.results.NS_NOINTERFACE;
 	},
 
-	onStateChange: function(aProgress, aRequest, aFlag, aStatus)
-	{
-		if (!show_page)
+	onStateChange: function(aProgress, aRequest, aFlag, aStatus) {
+		if (!StatusbarEx.show_page) {
 			return 0;
+		}
 
-		try
-		{
+		try {
 			var doc = aProgress.DOMWindow.document;
 			var browser = gBrowser.getBrowserForDocument(doc);
-			if (browser == gBrowser.selectedBrowser)
-				update_page_info(doc);
-		}
-		catch(ex)
-		{
-			jsdump(">>>onStateChange() error with " + ex.message);
+			if (browser == gBrowser.selectedBrowser) {
+				StatusbarEx.update_page_info(doc);
+			}
+		} catch(ex) {
+			StatusbarEx.dump(ex.message);
 		}
 		return 0;
 	},
 
-	onLocationChange: function(aProgress, aRequest, aURI)
-	{
-		if (!show_page)
+	onLocationChange: function(aProgress, aRequest, aURI) {
+		if (!StatusbarEx.show_page) {
 			return 0;
+		}
 
-		if (aProgress.DOMWindow != gBrowser.selectedBrowser)
+		if (aProgress.DOMWindow != gBrowser.selectedBrowser) {
 			return 0;
+		}
 
-		update_page_info(gBrowser.selectedBrowser.document);
+		StatusbarEx.update_page_info(gBrowser.selectedBrowser.document);
 		return 0;
 	},
 
@@ -381,283 +392,277 @@ var sbex_progListener =
 
 
 
-function sbex_on_tabselect(evt)
-{
-	if (!show_page)
+function sbex_on_tabselect(evt) {
+	if (!StatusbarEx.show_page) {
 		return;
+	}
 
 	var doc = gBrowser.selectedBrowser.contentDocument;
-	update_page_info(doc);
+	StatusbarEx.update_page_info(doc);
 }
 
 
-function onLoad()
-{
-	setSbPref();
+function StatusbarEx_onLoad () {
+	const Cc = Components.classes;
+	const Ci = Components.interfaces;
+
+	StatusbarEx.setSbPref();
 
 	// --- Check the first run OR new version ---
-	var sbEM = Components.classes["@mozilla.org/extensions/manager;1"].getService(Components.interfaces.nsIExtensionManager);
+	var sbEM = Cc["@mozilla.org/extensions/manager;1"].getService(Ci.nsIExtensionManager);
 	var sbAddon = sbEM.getItemForID("doudehou@gmail.com");
 	var newVersion = sbAddon.version;
-	jsdump(main_statusbarexattribute + sbAddon.name + "@" + sbAddon.version);
 	
-	if (sbAddon.name == "StatusbarEx")
-	{
-		if(sbVersion != newVersion)
-		{
-			if(window.navigator.onLine)
-			{
-				Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch).setCharPref("extensions.statusbarEx.firstrun", newVersion);
+	if (sbAddon.name == "StatusbarEx") {
+		if(StatusbarEx.sbVersion != newVersion) {
+			if(window.navigator.onLine) {
+				Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch).setCharPref("extensions.statusbarEx.firstrun", newVersion);
 				getBrowser().addEventListener('load', sbexShowHomePage, true);
 			}
 		}
 	}
 	// ---          END OF CHECKING           ---
 
-	window.removeEventListener('load', onLoad, false);
+	window.removeEventListener('load', StatusbarEx_onLoad, false);
 
 	// gBrowser.addEventListener("load", sbex_on_page_load, true);
 
-	gBrowser.addProgressListener(sbex_progListener,
-		Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+	gBrowser.addProgressListener(sbex_progListener, Ci.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
 
 	var tabContainer = gBrowser.tabContainer;
 	tabContainer.addEventListener("TabSelect", sbex_on_tabselect, false);
+
+	/**
+	 * Add the click listener
+	 */
+	StatusbarEx.addClickHandler();
+
 	return;
 }
 
 
 
-function showPane(pane, show)
-{
-	if (show)
+StatusbarEx.showPane = function (pane, show, width) {
+	if (show) {
 		pane.style.display = "";
-	else
+	} else {
 		pane.style.display = "none";
+	}
 
-	if (fixed_length)
-		pane.style.fontFamily = "\"Courier New\",monospace";
-	else
-		pane.style.fontFamily = "";
+	if (StatusbarEx.fixed_length) {
+		// pane.style.fontFamily = "Courier, \"Lucida Console\", monospace";
+		pane.style.width = width + "px";
+	} else {
+		// pane.style.fontFamily = "";
+		pane.style.width = "";
+	}
 }
 
-function updateTooltip()
-{
-	try
-	{
+StatusbarEx.updateTooltip = function () {
+	try {
 		var txt = '';
 	
-		if (show_memory)
-		{
-			txt = main_memoryavailable;
-			if (show_totalmemory)
-				txt += ' / '+main_totalmemory;
+		if (this.show_memory) {
+			txt = this.getString("main_memoryavailable");
+			if (this.show_totalmemory) {
+				txt += ' / '+ this.getString("main_totalmemory");
+			}
+		} else if (this.show_totalmemory) {
+			txt = this.getString("main_totalmemory"); 
 		}
-		else if (show_totalmemory)
-			txt = main_totalmemory; 
+		if (this.show_syscpu) {
+			txt += " " + this.getString("main_cpuusage");
+		}
 		document.getElementById('sbex-sys').setAttribute('tooltiptext', txt);
 	
 		txt = '';
-		if (show_fxmemory)
-		{
-			txt = main_memoryfirefoxused;
-			if (show_fxcpu)
-				txt += ' | '+main_firefoxcpuusage;
+		if (this.show_fxmemory) {
+			txt = this.getString("main_memoryfirefoxused");
+			if (this.show_fxcpu) {
+				txt += ' | '+ this.getString("main_firefoxcpuusage");
+			}
+		} else if (this.show_fxcpu) {
+			txt = this.getString("main_firefoxcpuusage");
 		}
-		else if (show_fxcpu)
-			txt = main_firefoxcpuusage;
 		document.getElementById('sbex-fx').setAttribute('tooltiptext', txt);
 
 
-		txt = '';
-		if (compact_mode)
-		{
-			txt = main_downup;
-		}
-		else
-		{
-			txt = main_downup;
-		}
-		var tmpFlag = false;
+		txt = this.getString("main_downup");
 		var idx;
-		var sm = _SBEX_CC["@doudehou/statusbarEx;1"].createInstance(Components.interfaces.IStatusbarExCore);
-		txt += " (";
-		for (idx = 0; idx < SBEX_MAX_ETH_COUNT; ++ idx)
-		{
-			if (show_ethN[idx])
-			{
-				var eth_name = {value:""};
-				sm.GetEthernetName(idx, eth_name);
-				if (tmpFlag)
-					txt += " - ";
-				txt += "#" + idx.toString() + ":" + eth_name.value;
-				tmpFlag = true;
+		for (idx = 0; idx < SBEX_MAX_ETH_COUNT; ++ idx) {
+			if (this.show_ethN[idx]) {
+				var eth_name = {value : ""};
+				this.sm.GetEthernetName(idx, eth_name);
+				txt += "\r\n#" + idx.toString() + ": " + eth_name.value;
 
-				if (eth_name.value.length > 0)
-					ethN_name_got = true;
+				if (eth_name.value.length > 0) {
+					this.ethN_name_got = true;
+				}
 			}
 		}
-		txt += ")";
 		document.getElementById('sbex-net').setAttribute('tooltiptext', txt);
-	}
-	catch(e)
-	{
-		var txt = main_statusbarexupdatetoo16 + e.message + ">";
-		jsdump(txt);
+	} catch (e) {
+		var txt = this.getString("main_statusbarexupdatetool") + e.message + ">";
+		this.dump(txt);
 	}
 }
 
-function showPaneS()
-{
+StatusbarEx.showPaneS = function () {
 	var pane = document.getElementById('sbex-page');
-	showPane(pane, show_page);
-	if (show_page)
-	{
+	this.showPane(pane, this.show_page, 140);
+	if (this.show_page) {
 		var doc = gBrowser.selectedBrowser.contentDocument;
-		update_page_info(doc);
+		this.update_page_info(doc);
 	}
 
 	pane = document.getElementById('sbex-sys');
-	showPane(pane, show_memory || show_totalmemory);
+	var width = 0;
+	if (this.show_memory) {
+		width += 60;
+	}
+	if (this.show_totalmemory) {
+		width += 60;
+	}
+	if (this.show_syscpu) {
+		width += 60;
+	}
+	this.showPane(pane, width > 0, width);
 
 	pane = document.getElementById('sbex-fx');
-	showPane(pane, show_fxcpu || show_fxmemory);
+	if (this.compact_mode) {
+		this.showPane(pane, this.show_fxcpu || this.show_fxmemory, this.show_fxcpu && this.show_fxmemory ? 120 : 60);
+	} else {
+		this.showPane(pane, this.show_fxcpu || this.show_fxmemory, this.show_fxcpu && this.show_fxmemory ? 130 : 80);
+	}
 
 	pane = document.getElementById('sbex-net');
 	var bShow = false;
 	var i = 0;
-	for (; i < SBEX_MAX_ETH_COUNT; ++ i)
-	{
-		if (show_ethN[i])
-		{
+	width = 0;
+	for (; i < SBEX_MAX_ETH_COUNT; ++ i) {
+		if (this.show_ethN[i]) {
 			bShow = true;
-			break;
+			if (this.compact_mode) {
+				width = width + 120;
+			} else {
+				width = width + 140;
+			}
 		}
 	}
-	showPane(pane, bShow);
+	this.showPane(pane, bShow, width);
 
 	// hide the power pane first.
 	pane = document.getElementById('sbex-pwr');
-	showPane(pane, show_pwr);
+	this.showPane(pane, this.show_pwr);
 
-	updateTooltip();
+	this.updateTooltip();
 }
 
-function setTextColor()
-{
+StatusbarEx.setTextColor = function () {
 	var pane = document.getElementById('sbex-sys');
-	pane.style.color = text_color;
+	pane.style.color = this.text_color;
 
 	pane = document.getElementById('sbex-fx');
-	pane.style.color = text_color;
+	pane.style.color = this.text_color;
 
 	pane = document.getElementById('sbex-net');
-	pane.style.color = text_color;
+	pane.style.color = this.text_color;
 
 	pane = document.getElementById('sbex-pwr');
-	pane.style.color = text_color;
+	pane.style.color = this.text_color;
 
 	pane = document.getElementById('sbex-page');
-	pane.style.color = text_color;
+	pane.style.color = this.text_color;
 }
 
 
 
-function setSbPref()
-{
+StatusbarEx.setSbPref = function () {
 	var sbprefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 	sbPrefObserver.register();
-	try
-	{
-		text_color = sbprefs.getCharPref("extensions.statusbarEx.text_color");
-		show_page = sbprefs.getBoolPref("extensions.statusbarEx.show_page");
-		show_memory = sbprefs.getBoolPref("extensions.statusbarEx.show_memory");
-		show_totalmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_totalmemory");
-		show_fxmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_fxmemory");
-		show_fxcpu = sbprefs.getBoolPref("extensions.statusbarEx.show_fxcpu");
-		show_pwr = sbprefs.getBoolPref("extensions.statusbarEx.show_power");
-		fixed_length = sbprefs.getBoolPref("extensions.statusbarEx.fixed_length");
-		compact_mode = sbprefs.getBoolPref("extensions.statusbarEx.compact_mode");
- 		sbVersion = sbprefs.getCharPref("extensions.statusbarEx.firstrun");
+	try {
+		this.text_color = sbprefs.getCharPref("extensions.statusbarEx.text_color");
+		this.show_page = sbprefs.getBoolPref("extensions.statusbarEx.show_page");
+		this.show_memory = sbprefs.getBoolPref("extensions.statusbarEx.show_memory");
+		this.show_totalmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_totalmemory");
+		this.show_syscpu = sbprefs.getBoolPref("extensions.statusbarEx.show_syscpu");
+		this.show_fxmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_fxmemory");
+		this.show_fxcpu = sbprefs.getBoolPref("extensions.statusbarEx.show_fxcpu");
+		this.show_pwr = sbprefs.getBoolPref("extensions.statusbarEx.show_power");
+		this.fixed_length = sbprefs.getBoolPref("extensions.statusbarEx.fixed_length");
+		this.compact_mode = sbprefs.getBoolPref("extensions.statusbarEx.compact_mode");
+ 		this.sbVersion = sbprefs.getCharPref("extensions.statusbarEx.firstrun");
 
 		var i = 0;
-		for (; i < SBEX_MAX_ETH_COUNT; ++ i)
-		{
+		for (; i < SBEX_MAX_ETH_COUNT; ++ i) {
 			var Key = "extensions.statusbarEx.show_eth";
 			Key += i;
-			show_ethN[i] = sbprefs.getBoolPref(Key);
+			this.show_ethN[i] = sbprefs.getBoolPref(Key);
 		}
 
-		setTextColor();
-		showPaneS();
-	}
-	catch(e)
-	{
-    		jsdump('>>>StatusbarEx::setSbPref error with ' + e.message);
+		this.setTextColor();
+		this.showPaneS();
+	} catch (e) {
+    		this.dump('StatusbarEx::setSbPref error with ' + e.message);
 	}
 }
 
 
-var sbPrefObserver =
-{
-	register: function()
-	{
+var sbPrefObserver = {
+	register: function() {
 		var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
 		this._branch = prefService.getBranch("extensions.statusbarEx.");
 		this._branch.QueryInterface(Components.interfaces.nsIPrefBranch2);
 		this._branch.addObserver("", this, false);
 	},
 
-	unregister: function()
-	{
-		if(!this._branch)
+	unregister: function() {
+		if(!this._branch) {
 			return;
+		}
 		this._branch.removeObserver("", this);
 	},
 
-	observe: function(aSubject, aTopic, aData)
-	{
-		if(aTopic != "nsPref:changed")
+	observe: function(aSubject, aTopic, aData) {
+		if(aTopic != "nsPref:changed") {
 			return;
+		}
 
-		jsdump(main_statusbarexprefchanged + aData);
 		var sbprefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 
-		if (aData == "text_color")
-		{
-			text_color = sbprefs.getCharPref("extensions.statusbarEx.text_color");
-			setTextColor();
+		if (aData == "text_color") {
+			StatusbarEx.text_color = sbprefs.getCharPref("extensions.statusbarEx.text_color");
+			StatusbarEx.setTextColor();
 			return;
-		}
-		else if (aData == "show_page")
-			show_page = sbprefs.getBoolPref("extensions.statusbarEx.show_page");
-		else if (aData == "show_memory")
-			show_memory = sbprefs.getBoolPref("extensions.statusbarEx.show_memory");
-		else if (aData == "show_totalmemory")
-			show_totalmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_totalmemory");
-		else if (aData == "show_fxmemory")
-			show_fxmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_fxmemory");
-		else if (aData == "show_fxcpu")
-			show_fxcpu = sbprefs.getBoolPref("extensions.statusbarEx.show_fxcpu");
-		else if (aData == "show_power")
-			show_pwr = sbprefs.getBoolPref("extensions.statusbarEx.show_power");
-		else if (aData == "fixed_length")
-			fixed_length = sbprefs.getBoolPref("extensions.statusbarEx.fixed_length");
-		else if (aData == "compact_mode")
-			compact_mode = sbprefs.getBoolPref("extensions.statusbarEx.compact_mode");
-		else if (aData == "firstrun")
-			sbVersion = sbprefs.getCharPref("extenstions.statusbarEx.firstrun");
-		else
-		{
+		} else if (aData == "show_page") {
+			StatusbarEx.show_page = sbprefs.getBoolPref("extensions.statusbarEx.show_page");
+		} else if (aData == "show_memory") {
+			StatusbarEx.show_memory = sbprefs.getBoolPref("extensions.statusbarEx.show_memory");
+		} else if (aData == "show_totalmemory") {
+			StatusbarEx.show_totalmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_totalmemory");
+		} else if (aData == "show_syscpu") {
+			StatusbarEx.show_syscpu = sbprefs.getBoolPref("extensions.statusbarEx.show_syscpu");
+		} else if (aData == "show_fxmemory") {
+			StatusbarEx.show_fxmemory = sbprefs.getBoolPref("extensions.statusbarEx.show_fxmemory");
+		} else if (aData == "show_fxcpu") {
+			StatusbarEx.show_fxcpu = sbprefs.getBoolPref("extensions.statusbarEx.show_fxcpu");
+		} else if (aData == "show_power") {
+			StatusbarEx.show_pwr = sbprefs.getBoolPref("extensions.statusbarEx.show_power");
+		} else if (aData == "fixed_length") {
+			StatusbarEx.fixed_length = sbprefs.getBoolPref("extensions.statusbarEx.fixed_length");
+		} else if (aData == "compact_mode") {
+			StatusbarEx.compact_mode = sbprefs.getBoolPref("extensions.statusbarEx.compact_mode");
+		} else if (aData == "firstrun") {
+			StatusbarEx.sbVersion = sbprefs.getCharPref("extenstions.statusbarEx.firstrun");
+		} else {
 			var i = 0;
-			for (; i < SBEX_MAX_ETH_COUNT; ++ i)
-			{
+			for (; i < SBEX_MAX_ETH_COUNT; ++ i) {
 				var Key = "extensions.statusbarEx.show_eth";
 				Key += i;
-				show_ethN[i] = sbprefs.getBoolPref(Key);
+				StatusbarEx.show_ethN[i] = sbprefs.getBoolPref(Key);
 			}
 		}
-		showPaneS();
+		StatusbarEx.showPaneS();
 	}
 }
 

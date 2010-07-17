@@ -3,6 +3,7 @@ pref('extensions.statusbarEx.text_color', '#000000');
 pref('extensions.statusbarEx.show_page', false);
 pref('extensions.statusbarEx.show_memory', true);
 pref('extensions.statusbarEx.show_totalmemory', true);
+pref('extensions.statusbarEx.show_syscpu', true);
 pref('extensions.statusbarEx.show_fxmemory', true);
 pref('extensions.statusbarEx.show_fxcpu', true);
 pref('extensions.statusbarEx.show_eth0', true);

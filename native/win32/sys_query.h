@@ -157,6 +157,7 @@ public:
 
 	void get_fx_memory(int *usage, int *vm_size);
 	int get_fx_cpu_usage();
+	int get_sys_cpu_usage();
 
 	void get_global_memory_status(int *total_memory, int *free_memory);
 };

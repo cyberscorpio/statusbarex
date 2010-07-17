@@ -10,6 +10,7 @@
 			<preference id="showPage" name="extensions.statusbarEx.show_page" type="bool" />
 			<preference id="showMemory" name="extensions.statusbarEx.show_memory" type="bool" />
 			<preference id="showTotalMemory" name="extensions.statusbarEx.show_totalmemory" type="bool" />
+			<preference id="showSysCpu" name="extensions.statusbarEx.show_syscpu" type="bool" />
 			<preference id="showFxMemory" name="extensions.statusbarEx.show_fxmemory" type="bool" />
 			<preference id="showFxCpu" name="extensions.statusbarEx.show_fxcpu" type="bool" />
 			<preference id="showEth0" name="extensions.statusbarEx.show_eth0" type="bool" />
@@ -45,6 +46,7 @@
 						<caption label="&options.caption.show.memory;" />
 						<checkbox id="sm" label="&options.checkbox.show.available;" preference="showMemory" />
 						<checkbox id="smt" label="&options.checkbox.show.total;" preference="showTotalMemory" />
+						<checkbox id="sc" label="&options.checkbox.show.syscpu;" preference="showSysCpu" />
 					</groupbox>
 			
 					<groupbox align="left">

@@ -4,16 +4,16 @@
 	<script type="application/x-javascript" src="chrome://statusbarex/content/mainui.js"></script>
 	<script type="application/x-javascript">
 		<![CDATA[
-		window.addEventListener('load', onLoad, false);
+		window.addEventListener('load', StatusbarEx_onLoad, false);
 		]]>
 	</script>
 	<statusbar id="status-bar">
-		<statusbarpanel id="sbex-page" label="" onclick="on_click(event);" tooltiptext="" />
-		<statusbarpanel id="sbex-sys" label="" onclick="on_click(event);" tooltiptext="" />
-		<statusbarpanel id="sbex-fx" label="" onclick="on_click(event);" tooltiptext="" />
-		<statusbarpanel id="sbex-net" label="" onclick="on_click(event);" tooltiptext="" />
-		<!-- <statusbarpanel id="sbex-pwr-ac" class="statusbarpanel-iconic" label="" onclick="on_click(event);" tooltiptext="" /> -->
-		<statusbarpanel id="sbex-pwr" label="" onclick="on_click(event);" tooltiptext="">
+		<statusbarpanel id="sbex-page" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-sys" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-fx" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-net" label="" tooltiptext="" />
+		<!-- <statusbarpanel id="sbex-pwr-ac" class="statusbarpanel-iconic" label="" tooltiptext="" /> -->
+		<statusbarpanel id="sbex-pwr" label="" tooltiptext="">
 			<image id="sbex-pwr-img" style="padding-right: 3px" src=""/>
 			<label id="sbex-pwr-desc" />
 		</statusbarpanel>

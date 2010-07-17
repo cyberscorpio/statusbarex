@@ -150,8 +150,17 @@ public:
 			}
 
 			if (m_tick > 0) {
-				record->in_speed = (row->dwInOctets - record->in_octets) * 1000 / (1024 * (tick - m_tick));
-				record->out_speed = (row->dwOutOctets - record->out_octets) * 1000 / (1024 * (tick - m_tick));
+				DWORD t = tick - m_tick;
+				if (t == 0) {
+					t = 1;
+				}
+#if 0
+				record->in_speed = (row->dwInOctets - record->in_octets) * 1000 / (1024 * t);
+				record->out_speed = (row->dwOutOctets - record->out_octets) * 1000 / (1024 * t);
+#else
+				record->in_speed = (row->dwInOctets - record->in_octets) * 1000 / t;
+				record->out_speed = (row->dwOutOctets - record->out_octets) * 1000 / t;
+#endif
 			}
 
 			record->in_octets = row->dwInOctets;
@@ -189,44 +198,42 @@ public:
 	i64 |= ft.dwLowDateTime;\
 } while(0)
 
-class self_cpu_usage {
-	int m_self_cpu;
-	FILETIME m_create_time;
-	FILETIME m_exit_time;
+class cpu_usage_base {
+protected:
+	int m_cpu_usage;
+	DWORD m_cpu_count;
 	FILETIME m_kernel_time;
 	FILETIME m_user_time;
 	DWORD m_record_tick;
+
+	virtual bool get_kernel_and_user_time (FILETIME *k, FILETIME *u) = 0;
 public:
-	self_cpu_usage () {
-		memset(this, 0, sizeof(self_cpu_usage));
+	cpu_usage_base () {
+		memset(&m_kernel_time, 0, sizeof(m_kernel_time));
+		memset(&m_user_time, 0, sizeof(m_user_time));
+		m_record_tick = 0;
+		m_cpu_count = 1;
+
+		SYSTEM_INFO si;
+		::GetSystemInfo(&si);
+		m_cpu_count = si.dwNumberOfProcessors;
 	}
 
 	void update ();
 
 	int get_cpu_usage () {
-		return m_self_cpu;
+		return m_cpu_usage;
 	}
 };
 
-void self_cpu_usage::update () {
+void cpu_usage_base::update () {
 	if (m_record_tick == 0) {
 		// first run, skip this round
-		::GetProcessTimes(
-			GetCurrentProcess(), 
-			&m_create_time, 
-			&m_exit_time, 
-			&m_kernel_time, 
-			&m_user_time);
+		get_kernel_and_user_time(&m_kernel_time, &m_user_time);
 		m_record_tick = GetTickCount();
 	} else {
 		FILETIME kernel_time, user_time;
-		if (::GetProcessTimes(
-		                      GetCurrentProcess(), 
-		                      &m_create_time, 
-		                      &m_exit_time, 
-		                      &kernel_time, 
-		                      &user_time
-		                     )) {
+		if (get_kernel_and_user_time(&kernel_time, &user_time)) {
 			__int64 k, k_now;
 			GET_INT64_FROM_FILETIME(k, m_kernel_time);
 			GET_INT64_FROM_FILETIME(k_now, kernel_time);
@@ -238,25 +245,48 @@ void self_cpu_usage::update () {
 			u = (u_now - u) / 100;
 
 			DWORD tick_now = GetTickCount();
-			m_self_cpu = ((int)(k + u)) / (tick_now - m_record_tick);
-			if (m_self_cpu > 100) {
-				m_self_cpu = 100;
+			m_cpu_usage = ((int)(k + u)) / (tick_now - m_record_tick);
+			m_cpu_usage /= m_cpu_count;
+			if (m_cpu_usage > 100) {
+				m_cpu_usage = 100;
 			}
 
 			m_record_tick = tick_now;
 			m_kernel_time = kernel_time;
 			m_user_time = user_time;
 		} else {
-			m_self_cpu = 0;
+			m_cpu_usage = 0;
 		}
 	}
 }
+
+class self_cpu_usage : public cpu_usage_base {
+protected:
+	virtual bool get_kernel_and_user_time (FILETIME *kernel_time, FILETIME *user_time) {
+		FILETIME f1, f2;
+		return ::GetProcessTimes(GetCurrentProcess(), &f1, &f2, kernel_time, user_time) == TRUE;
+	}
+};
+
+class sys_cpu_usage : public cpu_usage_base {
+protected:
+	virtual bool get_kernel_and_user_time (FILETIME *kernel_time, FILETIME *user_time) {
+		FILETIME k, u;
+		// return ::GetSystemTimes(&idle, kernel_time, user_time) == TRUE;
+		return ::GetSystemTimes(kernel_time, &k, &u) == TRUE;
+	}
+public:
+	int get_cpu_usage () {
+		return 100 - m_cpu_usage;
+	}
+};
 
 
 //////////////////////////////////////////////////////////////////////////
 
 static ethernet_info s_ei;
 static self_cpu_usage s_scu;
+static sys_cpu_usage s_syscu;
 
 
 sys_info_query::sys_info_query (void)
@@ -349,6 +379,10 @@ int sys_info_query::get_fx_cpu_usage () {
 	return s_scu.get_cpu_usage();
 }
 
+int sys_info_query::get_sys_cpu_usage () {
+	return s_syscu.get_cpu_usage();
+}
+
 
 void sys_info_query::get_global_memory_status (int *total_memory, int *free_memory) {
 	MEMORYSTATUSEX ms;
@@ -398,6 +432,7 @@ unsigned __stdcall sys_info_query::update_thread (void* pArg) {
 
 		// update CPU usage
 		s_scu.update();
+		s_syscu.update();
 
 		Sleep(1000);
 	}

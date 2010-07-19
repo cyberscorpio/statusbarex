@@ -4,7 +4,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>doudehou@gmail.com</em:id>
-    <em:version>0.2.21</em:version>
+    <em:version>0.2.22</em:version>
     <em:type>2</em:type>
    
     <!-- Target Application this extension can install into, 

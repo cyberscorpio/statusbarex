@@ -7,7 +7,7 @@ if not exist ..\native\win32\IStatusbarExCore.xpt goto xptmissing
 if exist statusbarex.xpi goto deletexpi
 
 : createxpi
-call 7z.exe a statusbarex.xpi * -r -x!xpi.bat -x!*.tmp -x!*.swp -x!*.svn
+call 7z.exe a statusbarex.xpi * -r -x!xpi.bat -x!*.tmp -x!*.swp -x!*.svn -x!*.zip
 @goto end
 
 :deletexpi

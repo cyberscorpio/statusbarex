@@ -176,25 +176,33 @@ StatusbarEx.show_network_info = function () {
 			this.sm.GetEthernetSpeed(i, in_speed, out_speed);
 			// in
 			var inString = '';
-			if (in_speed.value < 1024) {
-				inString = in_speed.value.toString() + 'B';
+			if (in_speed.value == 0) {
+				inString = ' 0';
+			} else if (in_speed.value < 12) {
+				inString = '0.01K';
+			} else if (in_speed.value < 1024) {
+				inString = (in_speed.value / 1024).toFixed(2) + 'K';
 			} else if (in_speed.value < 1024 * 1024) {
-				inString = (in_speed.value / 1024).toFixed().toString() + 'K';
+				inString = (in_speed.value / 1024).toFixed() + 'K';
 			} else {
-				inString = (in_speed.value / (1024 * 1024)).toFixed(2).toString() + 'M';
+				inString = (in_speed.value / (1024 * 1024)).toFixed(2) + 'M';
 			}
 			// out
 			var outString = '';
-			if (out_speed.value < 1024) {
-				outString = out_speed.value.toString() + 'B';
+			if (out_speed.value == 0) {
+				outString = '0';
+			} else if (out_speed.value < 12) {
+				outString = '0.01K';
+			} else if (out_speed.value < 1024) {
+				outString = (out_speed.value / 1024).toFixed(2) + 'K';
 			} else if (out_speed.value < 1024 * 1024) {
-				outString = (out_speed.value / 1024).toFixed().toString() + 'K';
+				outString = (out_speed.value / 1024).toFixed() + 'K';
 			} else {
-				outString = (out_speed.value / (1024 * 1024)).toFixed(2).toString() + 'M';
+				outString = (out_speed.value / (1024 * 1024)).toFixed(2) + 'M';
 			}
 
 			if (this.compact_mode) {
-				temp_text = sep + "#" + i.toString() + " " + inString + "/" + outString;
+				temp_text = sep + "#" + i.toString() + ":" + inString + "/" + outString;
 			} else {
 				temp_text = sep + "#" + i.toString() + "[D:" + inString + " - U:" + outString + "]";
 			}

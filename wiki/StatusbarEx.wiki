@@ -4,7 +4,12 @@ StatusbarEx is an extension for firefox, which can display some useful system in
 
   * Memory (totally, avaiable, and firefox itself used)
   * Network speed (include the download and upload)
+  * CPU usage (the system and firefox itself)
   * Battary
   * Page date
 
 To install this extension, just go to mozilla.com ( https://addons.mozilla.org/firefox/3271 )
+
+Please note the lastest (0.2.22) is not in public but in sandbox, so if you want to install it, you should go here: https://addons.mozilla.org/en-US/firefox/addon/3271/versions/
+
+I don't know when it will be moved into public from the sandbox, but it seems will take a long time....

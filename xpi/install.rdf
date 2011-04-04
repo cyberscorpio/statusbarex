@@ -4,16 +4,17 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>doudehou@gmail.com</em:id>
-    <em:version>0.2.22</em:version>
+    <em:version>0.3.0</em:version>
     <em:type>2</em:type>
+    <em:unpack>true</em:unpack>
    
     <!-- Target Application this extension can install into, 
          with minimum and maximum supported versions. --> 
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-        <em:minVersion>2.0</em:minVersion>
-        <em:maxVersion>4.0b1</em:maxVersion>
+        <em:minVersion>3.8</em:minVersion>
+        <em:maxVersion>4.*</em:maxVersion>
       </Description>
     </em:targetApplication>
    

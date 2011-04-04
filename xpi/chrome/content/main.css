@@ -1,0 +1,77 @@
+
+.sbex-hidden {
+	display: none;
+}
+
+#sbex-memory {
+	width: 104px;
+	max-width: 104px;
+	padding: 5px 0;
+	margin: 0 5px;
+}
+
+#sbex-memory-all {
+	background: -moz-linear-gradient(#777, #333);
+	border-radius: 5px;
+	border: 1px solid gray;
+}
+
+#sbex-memory-used {
+	width: 0;
+	background: -moz-linear-gradient(#0f0, #0a0);
+}
+
+#sbex-memory-value {
+	text-align: center;
+	overflow: hidden;
+	color: #ffe;
+	text-shadow: black 0 0 3px;
+}
+
+/* cpu */
+#sbex-cpu {
+	margin: 0 5px;
+}
+
+.sbex-cpu-item {
+	margin: 5px 0px;
+}
+
+.sbex-cpu-item label {
+	padding: 0;
+	width: 20px;
+	color: black;
+	text-shadow: white 0 0 3px;
+}
+
+.sbex-cpu-background {
+	width: 12px;
+	background: -moz-linear-gradient(left, #333, #777);
+	border-radius: 3px;
+	border: 1px solid gray;
+}
+
+.sbex-cpu-used {
+	height: 0;
+	background: -moz-linear-gradient(left, #0a0, #0f0);
+}
+
+#sbex-cpu-fx-used {
+	background: -moz-linear-gradient(left, #d54a0b, #fce54d);
+}
+
+/* network */
+#sbex-network {
+	margin: 5px 0;
+	border-left: 1px solid #ccc;
+}
+
+#sbex-network-value {
+	padding: 0;
+	text-align: right;
+	width: 100px;
+	color: black;
+	text-shadow: white 0 0 3px;
+}
+
+

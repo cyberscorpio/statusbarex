@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="main.css" type="text/css" ?>
+<overlay id="StatusbarEx" 
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript" src="chrome://statusbarex/content/main.js"></script>
+	<toolbarpalette id="status-bar">
+		<toolbaritem>
+			<hbox>
+				<stack id="sbex-memory">
+					<hbox id="sbex-memory-all">
+						<vbox id="sbex-memory-used" />
+					</hbox>
+					<label id="sbex-memory-value" value="" />
+				</stack>
+				<hbox id="sbex-cpu">
+					<hbox id="sbex-cpu-sys" class="sbex-cpu-item">
+						<vbox id="sbex-cpu-sys-image" class="sbex-cpu-background" pack="end">
+							<hbox id="sbex-cpu-sys-used" class="sbex-cpu-used" />
+						</vbox>
+						<label id="sbex-cpu-sys-value" />
+					</hbox>
+					<hbox id="sbex-cpu-fx" class="sbex-cpu-item">
+						<vbox id="sbex-cpu-fx-image" class="sbex-cpu-background" pack="end">
+							<hbox id="sbex-cpu-fx-used" class="sbex-cpu-used" />
+						</vbox>
+						<label id="sbex-cpu-fx-value" />
+					</hbox>
+				</hbox>
+				<hbox id="sbex-network">
+					<menupopup id="sbex-network-list">
+					</menupopup>
+					<label id="sbex-network-value" />
+					<dropmarker id="sbex-network-selector" context="sbex-network-list" />
+				</hbox>
+			</hbox>
+		</toolbaritem>
+	</toolbarpalette>
+</overlay>
+

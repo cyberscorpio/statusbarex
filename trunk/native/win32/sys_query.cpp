@@ -232,7 +232,7 @@ void cpu_usage_base::update () {
 		get_kernel_and_user_time(&m_kernel_time, &m_user_time);
 		m_record_tick = GetTickCount();
 	} else {
-		FILETIME kernel_time, user_time;
+		FILETIME kernel_time = {0, 0}, user_time = {0, 0};
 		if (get_kernel_and_user_time(&kernel_time, &user_time)) {
 			__int64 k, k_now;
 			GET_INT64_FROM_FILETIME(k, m_kernel_time);

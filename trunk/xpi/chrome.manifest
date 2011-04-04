@@ -1,6 +1,14 @@
 content     statusbarex    chrome/content/
 
-overlay chrome://browser/content/browser.xul chrome://statusbarex/content/mainui.xul
+# overlay chrome://browser/content/browser.xul chrome://statusbarex/content/mainui.xul
+overlay chrome://browser/content/browser.xul chrome://statusbarex/content/main.xul
+
+
+#######################################################
+# components
+interfaces components/IStatusbarExCore.xpt
+binary-component components/statusbarex.dll ABI=WINNT_x86-msvc
+
 
 #######################################################
 # Locale support

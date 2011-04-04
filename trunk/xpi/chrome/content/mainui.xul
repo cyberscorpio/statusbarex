@@ -7,22 +7,29 @@
 		window.addEventListener('load', StatusbarEx_onLoad, false);
 		]]>
 	</script>
+	<!--
 	<statusbar id="status-bar">
 		<statusbarpanel id="sbex-page" label="" tooltiptext="" />
 		<statusbarpanel id="sbex-sys" label="" tooltiptext="" />
 		<statusbarpanel id="sbex-fx" label="" tooltiptext="" />
 		<statusbarpanel id="sbex-net" label="" tooltiptext="" />
-		<!-- <statusbarpanel id="sbex-pwr-ac" class="statusbarpanel-iconic" label="" tooltiptext="" /> -->
 		<statusbarpanel id="sbex-pwr" label="" tooltiptext="">
 			<image id="sbex-pwr-img" style="padding-right: 3px" src=""/>
 			<label id="sbex-pwr-desc" />
 		</statusbarpanel>
-		<!-- 
-		<stack id="sbex-pwr-dc" onclick="on_click(event);" >
-			<progressmeter id="sbex-pwr-dc-prog" mode="determined" value="0%" />
-			<label id="sbex-pwr-dc-desc" value="" style="text-align:center;padding-top:3px;" />
-		</stack>
-		-->
 	</statusbar>
+	-->
+	<toolbarpalette id="status-bar">
+		<toolbaritem>
+		<toolbarbutton id="sbex-page" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-sys" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-fx" label="" tooltiptext="" />
+		<statusbarpanel id="sbex-net" label="" tooltiptext="" />
+		<toolbarbutton id="sbex-pwr" label="" tooltiptext="">
+			<image id="sbex-pwr-img" style="padding-right: 3px" src=""/>
+			<label id="sbex-pwr-desc" />
+		</toolbarbutton>
+		</toolbaritem>
+	</toolbarpalette>
 </overlay>
 

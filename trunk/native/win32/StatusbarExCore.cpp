@@ -8,16 +8,17 @@
 #include "xpcom-config.h"
 #define MOZILLA_STRICT_API
 
-#include "../../../xulrunner-sdk/include/nsCOMPtr.h"
-#include "../../../xulrunner-sdk/include/nsIModule.h"
-#include "../../../xulrunner-sdk/include/nsIFactory.h"
-#include "../../../xulrunner-sdk/include/nsIGenericFactory.h"
-#include "../../../xulrunner-sdk/include/nsIComponentManager.h"
-#include "../../../xulrunner-sdk/include/nsIComponentRegistrar.h"
-#include "../../../xulrunner-sdk/include/nsIServiceManager.h"
-#include "../../../xulrunner-sdk/include/nsICategoryManager.h"
-#include "../../../xulrunner-sdk/include/nsMemory.h"
-#include "../../../xulrunner-sdk/include/nsStringAPI.h"
+#include "nsCOMPtr.h"
+#include "nsIModule.h"
+#include "nsIFactory.h"
+#include "mozilla/ModuleUtils.h"
+#include "nsIClassInfoImpl.h"
+#include "nsIComponentManager.h"
+#include "nsIComponentRegistrar.h"
+#include "nsIServiceManager.h"
+#include "nsICategoryManager.h"
+#include "nsMemory.h"
+#include "nsStringAPI.h"
 
 #include "IStatusbarExCore.h"
 #include "sys_query.h"
@@ -57,6 +58,7 @@ NS_IMPL_ISUPPORTS1(StatusbarExCore, IStatusbarExCore)
 
 StatusbarExCore::StatusbarExCore () {
 	/* member initializers and constructor code */
+	// ::MessageBoxA(NULL, "I'm created!", "SBEX", MB_OK);
 }
 
 StatusbarExCore::~StatusbarExCore () {
@@ -187,6 +189,30 @@ NS_IMETHODIMP StatusbarExCore::GetPowerStatus(
 // the factory
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(StatusbarExCore)
+NS_DEFINE_NAMED_CID(STATUSBAREXCORE_CID);
+static const mozilla::Module::CIDEntry kSbExCoreCIDs[] = {
+	{ &kSTATUSBAREXCORE_CID, false, NULL, StatusbarExCoreConstructor },
+	{ NULL }
+};
+static const mozilla::Module::ContractIDEntry kSbExCoreContracts[] = {
+	{ s_szContractID, &kSTATUSBAREXCORE_CID },
+	{ NULL }
+};
+static const mozilla::Module::CategoryEntry kSbExCoreCategories[] = {
+	{ "my-category", "my-key", s_szContractID },
+	{ NULL }
+};
+static const mozilla::Module kSbExCoreModule = {
+	mozilla::Module::kVersion,
+	kSbExCoreCIDs,
+	kSbExCoreContracts,
+	kSbExCoreCategories
+};
+NSMODULE_DEFN(IStatusbarExCore) = &kSbExCoreModule;
+NS_IMPL_MOZILLA192_NSGETMODULE(&kSbExCoreModule)
+
+
+/*
 static NS_METHOD StatusbarExCoreRegistration(nsIComponentManager *aCompMgr,
 					     nsIFile *aPath,
 					     const char *registryLocation,
@@ -275,3 +301,4 @@ static NS_METHOD StatusbarExCoreUnregistration(nsIComponentManager *aCompMgr,
 		PR_TRUE);
 	return rv;
 }
+*/

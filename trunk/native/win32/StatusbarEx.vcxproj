@@ -18,12 +18,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -65,9 +66,10 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..\..\xulrunner\xulrunner-sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;../../../xulrunner-sdk/lib/xpcom.lib;../../../xulrunner-sdk/lib/xpcomglue_s.lib;../../../xulrunner-sdk/lib/nspr4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;../../../xulrunner/xulrunner-sdk/lib/xpcom.lib;../../../xulrunner/xulrunner-sdk/lib/xpcomglue_s.lib;../../../xulrunner/xulrunner-sdk/lib/nspr4.lib;../../../xulrunner/xulrunner-sdk/lib/mozalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Debug/StatusbarEx.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -105,9 +107,10 @@
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalIncludeDirectories>..\..\..\xulrunner\xulrunner-sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;../../../xulrunner-sdk/lib/xpcom.lib;../../../xulrunner-sdk/lib/xpcomglue_s.lib;../../../xulrunner-sdk/lib/nspr4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;../../../xulrunner/xulrunner-sdk/lib/xpcom.lib;../../../xulrunner/xulrunner-sdk/lib/xpcomglue_s.lib;../../../xulrunner/xulrunner-sdk/lib/nspr4.lib;../../../xulrunner/xulrunner-sdk/lib/mozalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Release/StatusbarEx.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/StatusbarEx.pdb</ProgramDatabaseFile>

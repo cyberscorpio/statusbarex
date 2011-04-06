@@ -5,12 +5,20 @@
 	<script type="application/x-javascript" src="chrome://statusbarex/content/main.js"></script>
 	<toolbarpalette id="status-bar">
 		<toolbaritem>
-			<hbox>
+			<vbox pack="center">
+			<hbox id="sbex">
+				<menupopup id="sbex-list">
+				</menupopup>
+				<vbox id="sbex-logo" pack="center">
+					<image src="chrome://statusbarex/content/logo.png" />
+				</vbox>
 				<stack id="sbex-memory">
 					<hbox id="sbex-memory-all">
 						<vbox id="sbex-memory-used" />
 					</hbox>
+					<vbox pack="center">
 					<label id="sbex-memory-value" value="" />
+					</vbox>
 				</stack>
 				<hbox id="sbex-cpu">
 					<hbox id="sbex-cpu-sys" class="sbex-cpu-item">
@@ -30,9 +38,10 @@
 					<menupopup id="sbex-network-list">
 					</menupopup>
 					<label id="sbex-network-value" />
-					<dropmarker id="sbex-network-selector" context="sbex-network-list" />
+					<dropmarker id="sbex-network-selector" />
 				</hbox>
 			</hbox>
+			</vbox>
 		</toolbaritem>
 	</toolbarpalette>
 </overlay>

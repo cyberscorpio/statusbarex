@@ -11,7 +11,9 @@
 		cpuSys: true,
 		cpuFx: true,
 		network: true,
-		netIndex: 0
+		netIndex: 0,
+
+		textonly: false
 	};
 
 	// save the elements for memory display
@@ -22,6 +24,8 @@
 	window.addEventListener('load', init, false);
 	function init() {
 		window.removeEventListener('load', arguments.callee, false);
+
+		document.getElementById('sbex').setAttribute('tooltiptext', getString('sbexTooltip'));
 
 		// save mem elements
 		var map = {
@@ -68,11 +72,18 @@
 			alert(e);
 		}
 
-		// init menus
-		initNetworkMenu();
+		// install the event handlers
+		document.getElementById('sbex-network-selector').onclick = showNetworkMenu;
+		// document.getElementById('sbex').onclick = showSbexMenu;
+		var ids = ['sbex-logo', 'sbex-memory', 'sbex-cpu', 'sbex-network-value'];
+		for (var i = 0, l = ids.length; i < l; ++ i) {
+			var elem = document.getElementById(ids[i]);
+			elem.onclick = showSbexMenu;
+		}
 
 		update();
 		window.setTimeout(update, 1000);
+
 	}
 
 	function update() {
@@ -167,6 +178,7 @@
 		if (!config.network) {
 			return;
 		}
+
 		var netIndex = config.netIndex;
 		var inSpeed = {value: 0}, outSpeed = {value: 0};
 		sm.GetEthernetSpeed(netIndex, inSpeed, outSpeed);
@@ -192,7 +204,7 @@
 		} catch (e) {
 			str = name;
 			var txt = e.message + " (" + name + ") is invalid";
-			alert(txt);
+			// alert(txt);
 			// logger.logStringMessage(txt);
 		}
 		return str;
@@ -212,36 +224,101 @@
 		}
 	}
 
-	function initNetworkMenu() {
-		var menu = document.getElementById('sbex-network-list');
+	function showSbexMenu(e) {
+		if (e.button != 0) {
+			return;
+		}
+		var menu = document.getElementById('sbex-list');
 		var items = menu.getElementsByTagName('menuitem');
-		if (items.length == 0) {
-			var count = sm.GetEthernetCount();
-			if (count == 0) {
-				window.setTimeout(arguments.callee, 1000);
-				return;
-			}
+		while (items.length) {
+			menu.removeChild(items[0]);
+		}
+		items = menu.getElementsByTagName('menuseparator');
+		while (items.length) {
+			menu.removeChild(items[0]);
+		}
 
-			for (var i = 0; i < count; ++ i) {
-				var name = {value : ''};
-				sm.GetEthernetName(i, name);
-				var item = document.createElement('menuitem');
+		var options = [ // config-key, string-key
+			[ 'memory', 'sbexMemory' ],
+			[ 'separator' ],
+			[ 'cpuSys', 'sbexCpuSys' ],
+			[ 'cpuFx', 'sbexCpuFx' ],
+			[ 'separator' ],
+			[ 'network', 'sbexNetwork' ],
+			[ 'separator' ],
+			[ 'textonly', 'sbexTextOnly' ]
+		];
+
+		for (var i = 0, l = options.length; i < l; ++ i) {
+			var opt = options[i];
+			if (opt[0] == 'separator') {
+				var item = document.createElement('menuseparator');
 				menu.appendChild(item);
-
-				item.setAttribute('label', name.value);
-				item.setAttribute('id', 'sbex-network-adapter-' + i);
-				item.setAttribute('type', 'radio');
-				item.adapter = i;
-				item.oncommand = onNetworkListSelected;
-				if (i == config.netIndex) {
-					item.setAttribute('checked', true);
-				}
+				continue;
 			}
+
+			var item = document.createElement('menuitem');
+			menu.appendChild(item);
+
+			item.setAttribute('label', getString(opt[1]));
+			item.setAttribute('type', 'checkbox');
+			item.name = opt[0];
+			item.onclick = onSbexMenuSelected;
+			if (config[opt[0]]) {
+				item.setAttribute('checked', true);
+			}
+		}
+
+		menu.openPopup(this, 'before_start', 0, 0, false);
+	}
+
+	function onSbexMenuSelected() {
+		var name = this.name;
+		if (config[name] != undefined) {
+			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
+			var value = config[name];
+			value = value ? false : true;
+			key = 'extensions.sbex.' + name;
+			sbprefs.setBoolPref(key, value);
 		}
 	}
 
+	function showNetworkMenu(e) {
+		if (e.button != 0) {
+			return;
+		}
+		var menu = document.getElementById('sbex-network-list');
+		var items = menu.getElementsByTagName('menuitem');
+		while (items.length) {
+			menu.removeChild(items[0]);
+		}
+
+		var count = sm.GetEthernetCount();
+		if (count == 0) {
+			// window.setTimeout(arguments.callee, 1000);
+			return;
+		}
+
+		for (var i = 0; i < count; ++ i) {
+			var name = {value : ''};
+			sm.GetEthernetName(i, name);
+			var item = document.createElement('menuitem');
+			menu.appendChild(item);
+
+			item.setAttribute('label', name.value);
+			item.setAttribute('id', 'sbex-network-adapter-' + i);
+			item.setAttribute('type', 'radio');
+			item.adapter = i;
+			item.onclick = onNetworkListSelected;
+			if (i == config.netIndex) {
+				item.setAttribute('checked', true);
+			}
+		}
+
+		menu.openPopup(netElems.container, 'before_end', 0, 0, false);
+	}
+
 	function onNetworkListSelected() {
-		alert('selected!');
 		if (config.netIndex != this.adapter) {
 			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 			sbprefs.setIntPref('extensions.sbex.networkIndex', this.adapter);
@@ -251,6 +328,8 @@
 	// pref relative
 	function removeClass(e, cls) {
 		var className = e.className;
+		className = className.replace(cls + ' ', '');
+		className = className.replace(' ' + cls, '');
 		className = className.replace(cls, '');
 		e.className = className;
 	}
@@ -293,18 +372,21 @@
 			addClass(netElems.container, hidden);
 		}
 
-		// update menu
-		var menu = document.getElementById('sbex-network-list');
-		var items = menu.getElementsByTagName('menuitem');
-		for (var i = 0, l = items.length; i < l; ++ i) {
-			var item = items[i];
-			if (i != config.netIndex && item.hasAttribute('checked')) {
-				item.removeAttribute('checked');
+		memCache.ratio = -1;
+		var imgIds = ['sbex-memory-all', 'sbex-cpu-sys-image', 'sbex-cpu-fx-image'];
+		var elem = null;
+		if (config.textonly) {
+			for (var i = 0, l = imgIds.length; i < l; ++ i) {
+				var elem = document.getElementById(imgIds[i]);
+				addClass(elem, hidden);
 			}
-
-			if (i == config.netIndex) {
-				item.setAttribute('checked', true);
+			addClass(memElems.value, 'sbex-textonly');
+		} else {
+			for (var i = 0, l = imgIds.length; i < l; ++ i) {
+				var elem = document.getElementById(imgIds[i]);
+				removeClass(elem, hidden);
 			}
+			removeClass(memElems.value, 'sbex-textonly');
 		}
 	}
 
@@ -318,11 +400,12 @@
 
 			// load prefs
 			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
-			var map = {
+			var map = { // pref key : config key
 				'extensions.sbex.memory' : 'memory',
 				'extensions.sbex.cpuSys' : 'cpuSys',
 				'extensions.sbex.cpuFx' : 'cpuFx',
-				'extensions.sbex.network' : 'network'
+				'extensions.sbex.network' : 'network',
+				'extensions.sbex.textonly' : 'textonly',
 			};
 			for (var k in map) {
 				config[map[k]] = sbprefs.getBoolPref(k);
@@ -334,6 +417,23 @@
 				config[map[k]] = sbprefs.getIntPref(k);
 			}
 			onPrefChanged();
+
+
+			// --- Check the first run OR new version ---
+			var vk = 'extensions.sbex.firstrun';
+			var ver = sbprefs.getCharPref(vk);
+			Components.utils.import("resource://gre/modules/AddonManager.jsm");
+			AddonManager.getAddonByID('doudehou@gmail.com', function(addon) {
+				if (addon.name == "StatusbarEx") {
+					if(ver != addon.version) {
+						if(window.navigator.onLine) {
+							sbprefs.setCharPref(vk, addon.version);
+							getBrowser().addEventListener('load', showHomepage, true);
+						}
+					}
+				}
+			});
+			// ---          END OF CHECKING           ---
 		},
 
 		unregister: function() {
@@ -359,12 +459,23 @@
 				config.network = sbprefs.getBoolPref('extensions.sbex.network');
 			} else if (aData == 'networkIndex') {
 				config.netIndex = sbprefs.getIntPref('extensions.sbex.networkIndex');
+			} else if (aData == 'textonly') {
+				config.textonly = sbprefs.getBoolPref('extensions.sbex.textonly');
 			} else if (aData == 'firstrun') {
-				// TODO
+				// nothing to do:)
 			}
 
 			onPrefChanged();
 		}
+	}
+
+
+	function showHomepage() {
+		getBrowser().removeEventListener('load', arguments.callee, true);
+		var homepg = 'http://www.xilou.us/home/statusbarex';
+		// var homepg = 'http://www.google.com.hk';
+		
+		getBrowser().selectedTab = getBrowser().addTab(homepg); 
 	}
 
 })();

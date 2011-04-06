@@ -17,7 +17,7 @@
 						<vbox id="sbex-memory-used" />
 					</hbox>
 					<vbox pack="center">
-					<label id="sbex-memory-value" value="" />
+						<label id="sbex-memory-value" value="" />
 					</vbox>
 				</stack>
 				<hbox id="sbex-cpu">
@@ -37,7 +37,9 @@
 				<hbox id="sbex-network">
 					<menupopup id="sbex-network-list">
 					</menupopup>
-					<label id="sbex-network-value" />
+					<vbox pack="center">
+						<label id="sbex-network-value" />
+					</vbox>
 					<dropmarker id="sbex-network-selector" />
 				</hbox>
 			</hbox>

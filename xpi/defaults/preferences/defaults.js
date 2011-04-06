@@ -21,6 +21,7 @@ pref('extensions.sbex.memory', true);
 pref('extensions.sbex.cpuSys', true);
 pref('extensions.sbex.cpuFx', true);
 pref('extensions.sbex.network', true);
+pref('extensions.sbex.textonly', false);
 pref('extensions.sbex.networkIndex', 0);
-pref('extensions.sbex.firstrun', true);
+pref('extensions.sbex.firstrun', '0');
 

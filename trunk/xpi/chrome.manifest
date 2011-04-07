@@ -7,7 +7,7 @@ overlay chrome://browser/content/browser.xul chrome://statusbarex/content/main.x
 #######################################################
 # components
 interfaces components/IStatusbarExCore.xpt
-binary-component components/statusbarex.dll ABI=WINNT_x86-msvc
+# binary-component components/statusbarex.dll ABI=WINNT_x86-msvc
 
 
 #######################################################

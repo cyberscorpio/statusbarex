@@ -328,18 +328,29 @@
 	// pref relative
 	function removeClass(e, cls) {
 		var className = e.className;
-		className = className.replace(cls + ' ', '');
-		className = className.replace(' ' + cls, '');
-		className = className.replace(cls, '');
+		var classes = className.split(' ');
+		className = '';
+		for (var i = 0, l = classes.length; i < l; ++ i) {
+			if (classes[i] != cls) {
+				if (className.length > 0) {
+					className += ' ';
+				}
+				className += classes[i];
+			}
+		}
 		e.className = className;
 	}
 
 	function addClass(e, cls) {
 		var className = e.className;
-		if (className.indexOf(cls) == -1) {
-			className += ' ' + cls;
-			e.className = className;
+		var classes = className.split(' ');
+		for (var i = 0, l = classes.length; i < l; ++ i) {
+			if (classes[i] == cls) {
+				return; // already has
+			}
 		}
+		className += ' ' + cls;
+		e.className = className;
 	}
 
 	function onPrefChanged() {
@@ -372,7 +383,7 @@
 			addClass(netElems.container, hidden);
 		}
 
-		memCache.ratio = -1;
+		memCache.ratio = memCache.fx = memCache.free = -1;
 		var imgIds = ['sbex-memory-all', 'sbex-cpu-sys-image', 'sbex-cpu-fx-image'];
 		var elem = null;
 		if (config.textonly) {
@@ -380,13 +391,13 @@
 				var elem = document.getElementById(imgIds[i]);
 				addClass(elem, hidden);
 			}
-			addClass(memElems.value, 'sbex-textonly');
+			removeClass(memElems.value, 'sbex-onimage');
 		} else {
 			for (var i = 0, l = imgIds.length; i < l; ++ i) {
 				var elem = document.getElementById(imgIds[i]);
 				removeClass(elem, hidden);
 			}
-			removeClass(memElems.value, 'sbex-textonly');
+			addClass(memElems.value, 'sbex-onimage');
 		}
 	}
 

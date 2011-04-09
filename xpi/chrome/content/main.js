@@ -482,8 +482,9 @@
 
 	function showHomepage() {
 		getBrowser().removeEventListener('load', arguments.callee, true);
-		var homepg = 'http://www.xilou.us/home/statusbarex';
+		// var homepg = 'http://www.xilou.us/home/statusbarex';
 		// var homepg = 'http://www.google.com.hk';
+		var homepg = 'http://www.enjoyfreeware.org/sbex';
 		
 		getBrowser().selectedTab = getBrowser().addTab(homepg); 
 	}

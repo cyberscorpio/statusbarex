@@ -1,19 +1,6 @@
 
 #sbex:hover {
-/*
-	background: -moz-linear-gradient(white, #ccf);
-*/
-	/*
-	border-left: 1px solid gray;
-	border-right: 1px solid gray;
-	*/
 }
-
-/*
-#sbex:hover #sbex-logo image {
-	box-shadow: 2px 2px 2px black;
-}
-*/
 
 #sbex-logo image {
 	background-color: white;
@@ -30,14 +17,16 @@
 
 
 #sbex-memory-all {
-	background: -moz-linear-gradient(#777, #333);
-	border: 1px solid gray;
+	background: -moz-linear-gradient(#777, #222);
+	/* background: -moz-linear-gradient(#222, #777, #222 80%); */
+	border: 1px solid #aaa;
 }
 
 #sbex-memory-used {
 	/* background: -moz-linear-gradient(#0f0, #0a0); */
 	/* background: -moz-linear-gradient(#d54a0b, #840); */
-	background: -moz-linear-gradient(#2c2, #060);
+	background: -moz-linear-gradient(#2b2, #050);
+	/* background: -moz-linear-gradient(green, #2c2, green 80%); */
 }
 
 #sbex-memory-value.sbex-onimage {
@@ -52,12 +41,12 @@
 }
 
 .sbex-cpu-background {
-	background: -moz-linear-gradient(left, #333, #777);
-	border: 1px solid gray;
+	background: -moz-linear-gradient(left, #222, #777);
+	border: 1px solid #aaa;
 }
 
 .sbex-cpu-used {
-	background: -moz-linear-gradient(left, #0a0, #0f0);
+	background: -moz-linear-gradient(left, #060, #0f0);
 }
 
 #sbex-cpu-fx-used {

@@ -4,10 +4,6 @@
 }
 
 #sbex {
-	border-radius: 2px;
-/*
-	border: 1px solid transparent;
-*/
 }
 
 #sbex:hover {
@@ -15,6 +11,7 @@
 
 #sbex-logo {
 	padding: 0 3px;
+	cursor: pointer;
 }
 
 #sbex-logo image {
@@ -27,7 +24,7 @@
 #sbex-memory {
 	width: 104px;
 	max-width: 104px;
-	margin: 0 5px 0 2px;
+	padding: 0 5px 0 2px;
 }
 
 #sbex-memory-all {
@@ -55,7 +52,7 @@
 /* cpu */
 #sbex-cpu {
 	padding: 0 5px;
-	border-left: 1px solid #ccc;
+	border-left: 1px solid gray;
 }
 
 .sbex-cpu-item {
@@ -82,7 +79,7 @@
 
 /* network */
 #sbex-network {
-	border-left: 1px solid #ccc;
+	border-left: 1px solid gray;
 }
 
 #sbex-network-value {

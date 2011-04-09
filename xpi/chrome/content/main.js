@@ -4,6 +4,7 @@
 	const Ci = Components.interfaces;
 	var logger = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
 	var strings = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService).createBundle("chrome://statusbarex/locale/main.properties");
+	var tm = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
 	var sm = Cc["@doudehou/statusbarEx;1"].createInstance(Ci.IStatusbarExCore);
 
 	var config = {
@@ -82,10 +83,12 @@
 		}
 
 		update();
-		window.setTimeout(update, 1000);
+		tm.initWithCallback({'notify' : update}, 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
+		// window.setTimeout(update, 1000);
 
 	}
 
+	var updateExceptionLogged = false;
 	function update() {
 		try {
 			updateMemory();
@@ -93,12 +96,12 @@
 			updateNetwork();
 
 		} catch (e) {
-			logger.logStringMessage('statusbarex exception: ' + e);
-			window.setTimeout(update, 5000);
+			if (!updateExceptionLogged) { // log only once
+				logger.logStringMessage('statusbarex exception: ' + e);
+				updateExceptionLogged = true;
+			}
 			return;
 		}
-
-		window.setTimeout(update, 1000);
 	}
 
 	/* memory */
@@ -203,9 +206,9 @@
 			var str = strings.GetStringFromName(name);
 		} catch (e) {
 			str = name;
-			var txt = e.message + " (" + name + ") is invalid";
+			var txt = e.message + " (" + name + " is missing)";
 			// alert(txt);
-			// logger.logStringMessage(txt);
+			logger.logStringMessage(txt);
 		}
 		return str;
 	}
@@ -295,8 +298,7 @@
 
 		var count = sm.GetEthernetCount();
 		if (count == 0) {
-			// window.setTimeout(arguments.callee, 1000);
-			return;
+			return; // DLL is not ready
 		}
 
 		for (var i = 0; i < count; ++ i) {

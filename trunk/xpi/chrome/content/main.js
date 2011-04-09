@@ -4,6 +4,7 @@
 	const Ci = Components.interfaces;
 	var logger = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
 	var strings = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService).createBundle("chrome://statusbarex/locale/main.properties");
+	var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 	var tm = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
 	var sm = Cc["@doudehou/statusbarEx;1"].createInstance(Ci.IStatusbarExCore);
 
@@ -86,6 +87,7 @@
 		tm.initWithCallback({'notify' : update}, 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
 		// window.setTimeout(update, 1000);
 
+		checkFirstRun();
 	}
 
 	var updateExceptionLogged = false;
@@ -176,7 +178,7 @@
 	}
 
 
-	netCache = {index: -1}
+	netCache = {index: -1};
 	function updateNetwork() {
 		if (!config.network) {
 			return;
@@ -278,7 +280,6 @@
 	function onSbexMenuSelected() {
 		var name = this.name;
 		if (config[name] != undefined) {
-			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 			var value = config[name];
 			value = value ? false : true;
 			key = 'extensions.sbex.' + name;
@@ -322,7 +323,6 @@
 
 	function onNetworkListSelected() {
 		if (config.netIndex != this.adapter) {
-			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 			sbprefs.setIntPref('extensions.sbex.networkIndex', this.adapter);
 		}
 	}
@@ -412,7 +412,6 @@
 			this._branch.addObserver("", this, false);
 
 			// load prefs
-			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 			var map = { // pref key : config key
 				'extensions.sbex.memory' : 'memory',
 				'extensions.sbex.cpuSys' : 'cpuSys',
@@ -431,22 +430,6 @@
 			}
 			onPrefChanged();
 
-
-			// --- Check the first run OR new version ---
-			var vk = 'extensions.sbex.firstrun';
-			var ver = sbprefs.getCharPref(vk);
-			Components.utils.import("resource://gre/modules/AddonManager.jsm");
-			AddonManager.getAddonByID('doudehou@gmail.com', function(addon) {
-				if (addon.name == "StatusbarEx") {
-					if(ver != addon.version) {
-						if(window.navigator.onLine) {
-							sbprefs.setCharPref(vk, addon.version);
-							getBrowser().addEventListener('load', showHomepage, true);
-						}
-					}
-				}
-			});
-			// ---          END OF CHECKING           ---
 		},
 
 		unregister: function() {
@@ -461,7 +444,6 @@
 				return;
 			}
 	
-			var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 			if (aData == 'memory') {
 				config.memory = sbprefs.getBoolPref('extensions.sbex.memory');
 			} else if (aData == 'cpuSys') {
@@ -482,6 +464,21 @@
 		}
 	}
 
+	function checkFirstRun() {
+		var vk = 'extensions.sbex.firstrun';
+		var ver = sbprefs.getCharPref(vk);
+		Components.utils.import("resource://gre/modules/AddonManager.jsm");
+		AddonManager.getAddonByID('doudehou@gmail.com', function(addon) {
+			if (addon.name == "StatusbarEx") {
+				if(ver != addon.version) {
+					if(window.navigator.onLine) {
+						sbprefs.setCharPref(vk, addon.version);
+						getBrowser().addEventListener('load', showHomepage, true);
+					}
+				}
+			}
+		});
+	}
 
 	function showHomepage() {
 		getBrowser().removeEventListener('load', arguments.callee, true);

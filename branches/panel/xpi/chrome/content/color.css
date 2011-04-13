@@ -1,0 +1,61 @@
+
+#sbex:hover {
+}
+
+#sbex-logo image {
+	background-color: white;
+}
+
+#sbex-logo:hover image {
+	background: -moz-linear-gradient(#ccc, white);
+}
+
+
+#sbex label {
+	/* use the theme defined font & color */
+}
+
+
+#sbex-memory-all {
+	background: -moz-linear-gradient(#777, #222);
+	/* background: -moz-linear-gradient(#222, #777, #222 80%); */
+	border: 1px solid #aaa;
+}
+
+#sbex-memory-used {
+	/* background: -moz-linear-gradient(#0f0, #0a0); */
+	/* background: -moz-linear-gradient(#d54a0b, #840); */
+	background: -moz-linear-gradient(#2b2, #050);
+	/* background: -moz-linear-gradient(green, #2c2, green 80%); */
+}
+
+#sbex-memory-value.sbex-onimage {
+	color: #fff;
+	text-shadow: black 0 0 2px;
+}
+
+
+/* cpu */
+#sbex-cpu {
+	border-left: 1px solid #ccc;
+}
+
+.sbex-cpu-background {
+	background: -moz-linear-gradient(left, #222, #777);
+	border: 1px solid #aaa;
+}
+
+.sbex-cpu-used {
+	background: -moz-linear-gradient(left, #060, #0f0);
+}
+
+#sbex-cpu-fx-used {
+	background: -moz-linear-gradient(left, #d54a0b, #fce54d);
+}
+
+/* network */
+#sbex-network {
+	border-left: 1px solid #ccc;
+}
+
+

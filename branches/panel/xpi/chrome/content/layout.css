@@ -1,0 +1,90 @@
+
+.sbex-hidden {
+	display: none;
+}
+
+#sbex {
+}
+
+#sbex:hover {
+}
+
+#sbex-logo {
+	padding: 0 3px;
+	cursor: pointer;
+}
+
+#sbex-logo image {
+	width: 16px;
+	height: 16px;
+	border-radius: 5px;
+	border: 1px solid gray;
+}
+
+#sbex-memory {
+	width: 104px;
+	max-width: 104px;
+	padding: 0 5px 0 2px;
+}
+
+#sbex-memory-all {
+	margin: 2px 0;
+
+	border-radius: 4px;
+	border: 1px solid gray;
+}
+
+#sbex-memory-used {
+	width: 0;
+	border-radius: 4px 0 0 4px;
+}
+
+#sbex-memory-value {
+	text-align: center;
+	overflow: hidden;
+}
+
+#sbex-memory-value.sbex-textonly {
+	text-shadow: none;
+}
+
+
+/* cpu */
+#sbex-cpu {
+	padding: 0 5px;
+	border-left: 1px solid gray;
+}
+
+.sbex-cpu-item {
+	margin: 1px 0;
+}
+
+.sbex-cpu-item label {
+	padding: 0;
+	width: 20px;
+}
+
+.sbex-cpu-background {
+	width: 12px;
+	border-radius: 3px;
+	border: 1px solid gray;
+}
+
+.sbex-cpu-used {
+	height: 0;
+}
+
+#sbex-cpu-fx-used {
+}
+
+/* network */
+#sbex-network {
+	border-left: 1px solid gray;
+}
+
+#sbex-network-value {
+	padding: 0;
+	text-align: right;
+	width: 90px;
+}
+

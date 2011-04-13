@@ -1,0 +1,45 @@
+#include "nsISupports.idl"
+
+
+/**
+
+// {490B7862-B2E9-4b25-9171-0C9E8BFBBFC1}
+static const GUID <<name>> = 
+{ 0x490b7862, 0xb2e9, 0x4b25, 
+{ 0x91, 0x71, 0xc, 0x9e, 0x8b, 0xfb, 0xbf, 0xc1 } };
+
+**/
+
+
+[scriptable, uuid(490B7862-B2E9-4b25-9171-0C9E8BFBBFC1)]
+interface IStatusbarExCore : nsISupports
+{
+	void GetMemoryStatus(out long total_memory, out long free_memory);
+	void GetFxMemory(out long usage, out long vm_size);
+	void GetFxCpuUsage(out long cpu_usage);
+	void GetSysCpuUsage(out long sys_cpu_usage);
+
+	long GetEthernetCount();
+	void GetEthernetSpeed(in long index, out long in_speed, out long out_speed);
+	void GetEthernetName(in long index, out DOMString name);
+
+	/**
+	 * @ACLineStatus:
+	 *  - 0: offline
+	 *  - 1: online
+	 *  - 255: unknown
+	 * @BatteryFlag: 
+	 *  - 1:High/2:Low/4:Critical
+	 *  - 8:Charging
+	 *  - 128:No system battery
+	 *  - 255:Unknown
+	 * @BatteryLifePercent:
+	 *  - 0-100: percent remaining
+	 *  - 255: unknown
+	 * @BatteryLifeTime:
+	 * - In second time remaining
+	 * - -1 unknown
+	 **/
+	void GetPowerStatus(out long ACLineStatus, out long BatteryFlag, out long BatteryLifePercent, out long BatteryLifeTime, out long hour, out long minute, out long second);
+};
+

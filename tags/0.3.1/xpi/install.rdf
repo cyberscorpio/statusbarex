@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>doudehou@gmail.com</em:id>
+    <em:version>0.3.1</em:version>
+    <em:type>2</em:type>
+    <em:unpack>true</em:unpack>
+   
+    <!-- Target Application this extension can install into, 
+         with minimum and maximum supported versions. --> 
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>4.0</em:minVersion>
+        <em:maxVersion>4.0.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+   
+    <!-- Front End MetaData -->
+    <em:name>StatusbarEx</em:name>
+    <em:description>Display information on the addon-bar, such as memory usage, CPU usage, network speed, and so on.</em:description>
+    <em:creator>dou dehou</em:creator>
+	<!--<em:optionsURL>chrome://statusbarex/content/options.xul</em:optionsURL>-->
+	<em:homepageURL>http://www.xilou.us/home/statusbarex</em:homepageURL>
+	<em:iconURL>chrome://statusbarex/content/logo.png</em:iconURL>
+  </Description>      
+</RDF>

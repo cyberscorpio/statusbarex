@@ -22,6 +22,9 @@
 	var memElems = {};
 	var cpuElems = {};
 	var netElems = {};
+	var histories = {};
+	histories.networkIn = new FixedQueue(60);
+	histories.networkOut = new FixedQueue(60);
 
 	window.addEventListener('load', init, false);
 	function init() {
@@ -60,6 +63,7 @@
 
 		// save network elements
 		map = {
+			'detailName' : 'sbex-detail-network-name',
 			'container' : 'sbex-network',
 			'value' : 'sbex-network-value'
 		};
@@ -76,11 +80,26 @@
 
 		// install the event handlers
 		document.getElementById('sbex-network-selector').onclick = showNetworkMenu;
-		// document.getElementById('sbex').onclick = showSbexMenu;
-		var ids = ['sbex-logo', 'sbex-memory', 'sbex-cpu', 'sbex-network-value'];
+		var ids = ['sbex-logo', 'sbex-memory', 'sbex-cpu'];//, 'sbex-network-value'];
 		for (var i = 0, l = ids.length; i < l; ++ i) {
 			var elem = document.getElementById(ids[i]);
 			elem.onclick = showSbexMenu;
+		}
+
+		// details
+		ids = ['sbex-network-value'];
+		for (var i = 0, l = ids.length; i < l; ++ i) {
+			var elem = document.getElementById(ids[i]);
+			elem.onclick = showSbexDetails;
+		}
+		window.addEventListener('popuphidden', onSbexDetailsHidden, false);
+
+		// details config
+		ids = ['sbex-detail-network-in', 'sbex-detail-network-out'];
+		for (var i = 0, l = ids.length; i < l; ++ i) {
+			var elem = document.getElementById(ids[i]);
+			elem.width = 120;
+			elem.height = 50;
 		}
 
 		update();
@@ -97,6 +116,8 @@
 			updateCpu();
 			updateNetwork();
 
+			updateDetails();
+
 		} catch (e) {
 			if (!updateExceptionLogged) { // log only once
 				logger.logStringMessage('statusbarex exception: ' + e);
@@ -106,6 +127,7 @@
 		}
 	}
 
+	////////////////////////////////////////////////
 	/* memory */
 	var memCache = {free: -1, fx: -1, ratio: -1};
 	function updateMemory() {
@@ -141,6 +163,7 @@
 		}
 	}
 
+	////////////////////////////////////////////////
 	/* cpu */
 	var cpuCache = {sys: -1, fx: -1};
 	function updateCpu() {
@@ -178,31 +201,121 @@
 	}
 
 
-	netCache = {index: -1};
+	////////////////////////////////////////////////
+	/* network */
+	netCache = {index: -1, inMax: -1, outMax: -1};
 	function updateNetwork() {
 		if (!config.network) {
 			return;
 		}
 
 		var netIndex = config.netIndex;
+		if (netIndex != netCache.index) {
+			var count = sm.GetEthernetCount();
+			if (count > 0) { // when get 0, the DLL is not ready
+
+				histories.networkIn.clear();
+				histories.networkOut.clear();
+
+				netCache.index = netIndex;
+				var name = {value: ''};
+				sm.GetEthernetName(netIndex, name);
+				netElems.container.setAttribute('tooltiptext', name.value);
+				netElems.detailName.setAttribute('value', name.value);
+				netElems.detailName.setAttribute('tooltiptext', name.value);
+			} else {
+				return;
+			}
+		}
+
 		var inSpeed = {value: 0}, outSpeed = {value: 0};
 		sm.GetEthernetSpeed(netIndex, inSpeed, outSpeed);
 		var value = getString('sbexNetworkTemplate');
 		value = value.replace(/%down%/, formatSpeed(inSpeed.value)).replace(/%up%/, formatSpeed(outSpeed.value));
 		netElems.value.setAttribute('value', value);
 
-		if (netIndex != netCache.index) {
-			var count = sm.GetEthernetCount();
-			if (count > 0) { // when get 0, the DLL is not ready
-				netCache.index = netIndex;
-				var name = {value: ''};
-				sm.GetEthernetName(netIndex, name);
-				netElems.container.setAttribute('tooltiptext', name.value);
+		/*
+		if (inSpeed.value > netCache.inMax) {
+			netCache.inMax = getMax(inSpeed.value);
+			document.getElementById('sbex-detail-network-speed-in')
+				.setAttribute('value', formatSpeed(netCache.inMax) + '/s');
+		}
+		if (outSpeed.value > netCache.outMax) {
+			netCache.outMax = getMax(outSpeed.value);
+			document.getElementById('sbex-detail-network-speed-out')
+				.setAttribute('value', formatSpeed(netCache.outMax) + '/s');
+		}
+		*/
+
+		histories.networkIn.push(inSpeed.value);
+		histories.networkOut.push(outSpeed.value);
+	}
+
+	////////////////////////////////////////////////
+	/** update the details panel **/
+	function updateDetails() {
+		var details = document.getElementById('sbex-details');
+		if (details.state != 'open') {
+			return;
+		}
+
+		updateSpeedCanvas(histories.networkIn, 'in');
+		updateSpeedCanvas(histories.networkOut, 'out');
+	}
+
+	function updateSpeedCanvas(data, inout) {
+		var max = -1; //netCache[inout + 'Max'];
+		for (var i = 0, l = data.size(); i < l; ++ i) {
+			var t = data.get(i);
+			if (t > max) {
+				max = t;
 			}
+		}
+		max = getMax(max);
+		if (max != netCache[inout + 'Max']) {
+			netCache[inout + 'Max'];
+			document.getElementById('sbex-detail-network-speed-' + inout)
+				.setAttribute('value', formatSpeed(max) + '/s');
+		}
+
+		var canvas = document.getElementById('sbex-detail-network-' + inout);
+		var ctx = canvas.getContext('2d');
+		ctx.save();
+
+		var width = canvas.width;
+		var height = canvas.height;
+
+		ctx.clearRect(0, 0, width, height);
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = 'green';
+		ctx.beginPath();
+
+		ctx.moveTo(0, height - 1);
+		for (var i = 0, l = data.size(); i < l; ++ i) {
+			var t = data.get(i);
+			t = Math.ceil((max - t) * height / max + 0.5);
+			if (t == height) {
+				-- t;
+			}
+			ctx.lineTo(i * 2, t);
+		}
+		ctx.stroke();
+
+		ctx.restore();
+	}
+
+	function getMax(value) {
+		if (value < 1024 * 100) {
+			return Math.ceil((value + 1024 * 10 - 1) / (1024 * 10)) * 1024 * 10;
+		} else if (value < 1024 * 1000) {
+			return Math.ceil((value + 1024 * 100 - 1) / (1024 * 100)) * 1024 * 100;
+		} else {
+			return Math.ceil((value + 1024 * 1024 - 1) / (1024 * 1024)) * 1024 * 1024;
 		}
 	}
 
-
+	////////////////////////////////////////////////
+	/** utilities **/
 	function getString(name) {
 		try {
 			var str = strings.GetStringFromName(name);
@@ -229,8 +342,10 @@
 		}
 	}
 
-	function showSbexMenu(e) {
-		if (e.button != 0) {
+	////////////////////////////////////////////////
+	/** popup related **/
+	function showSbexMenu(evt) {
+		if (evt.button != 0) {
 			return;
 		}
 		var menu = document.getElementById('sbex-list');
@@ -287,8 +402,8 @@
 		}
 	}
 
-	function showNetworkMenu(e) {
-		if (e.button != 0) {
+	function showNetworkMenu(evt) {
+		if (evt.button != 0) {
 			return;
 		}
 		var menu = document.getElementById('sbex-network-list');
@@ -327,6 +442,24 @@
 		}
 	}
 
+	function showSbexDetails(evt) {
+		if (evt.button != 0) {
+			return;
+		}
+		var panel = document.getElementById('sbex-details');
+		if (panel.state == 'closed') {
+			panel.openPopup(netElems.container, 'before_end', 0, 0, false);
+		} else {
+			panel.hidePopup();
+		}
+	}
+
+	function onSbexDetailsHidden(evt) {
+		if (evt.target.id == 'sbex-details') {
+		}
+	}
+
+	////////////////////////////////////////////////
 	// pref relative
 	function removeClass(e, cls) {
 		var className = e.className;
@@ -488,5 +621,55 @@
 		
 		getBrowser().selectedTab = getBrowser().addTab(homepg); 
 	}
+
+
+	/* A fixed size, FIFO array (queue) */
+	function FixedQueue(capacity) {
+		capacity = capacity ? capacity : 10;
+
+		var data = new Array(capacity + 1);
+		var begin = 0, end = 0;
+
+		this.capacity = function() {
+			return capacity;
+		}
+
+		this.push = function(v) {
+			data[end ++] = v;
+			if (end > capacity) {
+				end = 0;
+			}
+
+			if (end == begin) {
+				if (++ begin > capacity) {
+					begin = 0;
+				}
+			}
+		}
+
+		this.size = function() {
+			if (end >= begin) {
+				return end - begin;
+			} else {
+				return capacity;
+			}
+		}
+
+		this.get = function(idx) {
+			if (idx >= capacity) {
+				return undefined;
+			}
+
+			return data[(begin + idx) % (capacity + 1)];
+		}
+
+		this.clear = function(clearData) {
+			begin = end = 0;
+			if (clearData) {
+				var data = new Array(capacity + 1);
+			}
+		}
+
+	};
 
 })();

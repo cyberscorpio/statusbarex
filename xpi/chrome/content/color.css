@@ -61,7 +61,30 @@
 
 /** details **/
 #sbex-details {
+	/*
 	background: -moz-linear-gradient(#ccc, white);
+	*/
+	border: 1px solid gray;
+}
+
+#sbex-details-title {
+	background: -moz-linear-gradient(#ccc, white);
+}
+
+#sbex-details-pin {
+	background-image: url(pin.png);
+}
+
+#sbex-details-pin.sbex-details-pinned {
+	background-position: 0 -16px;
+}
+
+#sbex-details-close {
+	background-image: url("chrome://global/skin/icons/close.png");
+}
+
+#sbex-details-close:hover {
+	background-position: -16px 0;
 }
 
 #sbex-details canvas {

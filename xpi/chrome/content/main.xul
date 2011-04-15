@@ -2,6 +2,7 @@
 <?xml-stylesheet href="layout.css" type="text/css" ?>
 <?xml-stylesheet href="color.css" type="text/css" ?>
 <?xml-stylesheet href="html.css" type="text/css" ?>
+<!DOCTYPE overlay SYSTEM "chrome://statusbarex/locale/main.dtd">
 <overlay id="StatusbarEx" 
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	xmlns:html="http://www.w3.org/1999/xhtml"
@@ -14,17 +15,21 @@
 				</menupopup>
 				<menupopup id="sbex-network-list">
 				</menupopup>
-				<panel id="sbex-details" noautohide="true">
+				<panel id="sbex-details">
+					<titlebar id="sbex-details-title" pack="end" allowevents="true">
+						<box id="sbex-details-pin" tooltiptext="&main.pin;" />
+						<box id="sbex-details-close" tooltiptext="&main.close;" />
+					</titlebar>
 					<hbox>
 						<vbox id="sbex-detail-network">
 							<label id="sbex-detail-network-name" crop="end" value="" />
-							<hbox pack="end">
+							<hbox pack="end" tooltiptext="&main.download;">
 								<vbox>
 									<label id="sbex-detail-network-speed-in" />
 								</vbox>
 								<html:canvas id="sbex-detail-network-in" class="sbex-canvas-network" />
 							</hbox>
-							<hbox pack="end">
+							<hbox pack="end" tooltiptext="&main.upload;">
 								<vbox>
 									<label id="sbex-detail-network-speed-out" />
 								</vbox>

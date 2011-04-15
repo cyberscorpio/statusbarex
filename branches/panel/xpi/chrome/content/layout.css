@@ -89,7 +89,28 @@
 }
 
 /* details */
+#sbex-details {
+	/*
+	border: none;
+	border-radius: 0 0 4px 4px;
+	*/
+}
+
+#sbex-details-title {
+	height: 20px;
+	border-bottom: 1px solid #ccc;
+}
+
+#sbex-details-pin, #sbex-details-close {
+	width: 16px;
+	height: 16px;
+	margin: 2px;
+}
+
+
 #sbex-detail-network {
 	width: 180px;
+	padding: 0 2px 2px 0;
 }
+
 

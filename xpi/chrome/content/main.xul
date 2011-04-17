@@ -23,14 +23,14 @@
 					<hbox>
 						<vbox id="sbex-detail-network">
 							<label id="sbex-detail-network-name" crop="end" value="" />
-							<hbox pack="end" tooltiptext="&main.download;">
-								<vbox>
+							<hbox pack="end">
+								<vbox tooltiptext="&main.download;">
 									<label id="sbex-detail-network-speed-in" />
 								</vbox>
 								<html:canvas id="sbex-detail-network-in" class="sbex-canvas-network" />
 							</hbox>
-							<hbox pack="end" tooltiptext="&main.upload;">
-								<vbox>
+							<hbox pack="end">
+								<vbox tooltiptext="&main.upload;">
 									<label id="sbex-detail-network-speed-out" />
 								</vbox>
 								<html:canvas id="sbex-detail-network-out" class="sbex-canval-network" />

@@ -150,8 +150,8 @@
 		memElems.value.setAttribute('value', value);
 
 		if (ratio != memCache.ratio) {
-			var w = memElems.all.getBoundingClientRect();
-			memElems.used.style.width = ratio * w.width / 100 + 'px';
+			w = memElems.all.clientWidth;
+			memElems.used.style.width = ratio * w / 100 + 'px';
 			memCache.ratio = ratio;
 		}
 	}
@@ -167,8 +167,8 @@
 			sm.GetSysCpuUsage(cpu);
 			if (cpu.value != cpuCache.sys) {
 				cpuCache.sys = cpu.value;
-				var w = cpuElems.sysImage.getBoundingClientRect();
-				cpuElems.sysUsed.style.height = cpu.value * w.height / 100 + 'px';
+				var h = cpuElems.sysImage.clientHeight;
+				cpuElems.sysUsed.style.height = cpu.value * h / 100 + 'px';
 				cpuElems.sysValue.setAttribute('value', cpu.value + '%');
 
 				var tooltip = getString('sbexCpuTooltipSys');
@@ -182,8 +182,8 @@
 			sm.GetFxCpuUsage(cpu);
 			if (cpu.value != cpuCache.fx) {
 				cpuCache.fx = cpu.value;
-				var w = cpuElems.fxImage.getBoundingClientRect();
-				cpuElems.fxUsed.style.height = cpu.value * w.height / 100 + 'px';
+				var h = cpuElems.fxImage.clientHeight;
+				cpuElems.fxUsed.style.height = cpu.value * h / 100 + 'px';
 				cpuElems.fxValue.setAttribute('value', cpu.value + '%');
 	
 				var tooltip = getString('sbexCpuTooltipFx');

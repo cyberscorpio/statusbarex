@@ -28,7 +28,7 @@
 }
 
 #sbex-memory-all {
-	margin: 2px 0;
+	margin: 1px 0;
 
 	border-radius: 4px;
 	border: 1px solid gray;
@@ -61,7 +61,8 @@
 
 .sbex-cpu-item label {
 	padding: 0;
-	width: 20px;
+	width: 2.5em;
+	margin: 0 4px 0 2px;
 }
 
 .sbex-cpu-background {
@@ -74,7 +75,8 @@
 	height: 0;
 }
 
-#sbex-cpu-fx-used {
+#sbex-cpu-fx label {
+	width: 1.5em; /* fx used 50% at most */
 }
 
 /* network */

@@ -2,6 +2,9 @@
 (function() {
 	const Cc = Components.classes;
 	const Ci = Components.interfaces;
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// saved var
 	var logger = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
 	var strings = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService).createBundle("chrome://statusbarex/locale/main.properties");
 	var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
@@ -15,13 +18,20 @@
 		network: true,
 		netIndex: 0,
 
+		detailsOpen: false,
+
 		textonly: false
 	};
 
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	// save the elements for memory display
 	var memElems = {};
 	var cpuElems = {};
 	var netElems = {};
+	var histories = {
+		networkIn: new FixedQueue(60),
+		networkOut: new FixedQueue(60)
+	}
 
 	window.addEventListener('load', init, false);
 	function init() {
@@ -60,6 +70,7 @@
 
 		// save network elements
 		map = {
+			'detailName' : 'sbex-detail-network-name',
 			'container' : 'sbex-network',
 			'value' : 'sbex-network-value'
 		};
@@ -76,16 +87,17 @@
 
 		// install the event handlers
 		document.getElementById('sbex-network-selector').onclick = showNetworkMenu;
-		// document.getElementById('sbex').onclick = showSbexMenu;
-		var ids = ['sbex-logo', 'sbex-memory', 'sbex-cpu', 'sbex-network-value'];
+		var ids = ['sbex-logo', 'sbex-memory', 'sbex-cpu'];//, 'sbex-network-value'];
 		for (var i = 0, l = ids.length; i < l; ++ i) {
 			var elem = document.getElementById(ids[i]);
 			elem.onclick = showSbexMenu;
 		}
 
+		// details panel
+		initDetailsPanel();
+
 		update();
 		tm.initWithCallback({'notify' : update}, 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
-		// window.setTimeout(update, 1000);
 
 		checkFirstRun();
 	}
@@ -97,6 +109,8 @@
 			updateCpu();
 			updateNetwork();
 
+			updateDetails();
+
 		} catch (e) {
 			if (!updateExceptionLogged) { // log only once
 				logger.logStringMessage('statusbarex exception: ' + e);
@@ -106,6 +120,7 @@
 		}
 	}
 
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	/* memory */
 	var memCache = {free: -1, fx: -1, ratio: -1};
 	function updateMemory() {
@@ -124,7 +139,7 @@
 		memCache.fx = fxMemory.value;
 
 		var ratio = 1 - freeMemory.value / totalMemory.value;
-		ratio = Math.ceil(ratio * 100 + 0.5);
+		ratio = Math.floor(ratio * 100 + 0.5);
 
 		var tooltip = getString('sbexMemoryTooltipTemplate');
 		tooltip = tooltip.replace(/%fm%/, freeMemory.value).replace(/%fx%/, fxMemory.value).replace(/%ratio%/, ratio);
@@ -135,12 +150,13 @@
 		memElems.value.setAttribute('value', value);
 
 		if (ratio != memCache.ratio) {
-			var w = memElems.all.getBoundingClientRect();
-			memElems.used.style.width = ratio * w.width / 100 + 'px';
+			w = memElems.all.clientWidth;
+			memElems.used.style.width = ratio * w / 100 + 'px';
 			memCache.ratio = ratio;
 		}
 	}
 
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	/* cpu */
 	var cpuCache = {sys: -1, fx: -1};
 	function updateCpu() {
@@ -151,8 +167,8 @@
 			sm.GetSysCpuUsage(cpu);
 			if (cpu.value != cpuCache.sys) {
 				cpuCache.sys = cpu.value;
-				var w = cpuElems.sysImage.getBoundingClientRect();
-				cpuElems.sysUsed.style.height = cpu.value * w.height / 100 + 'px';
+				var h = cpuElems.sysImage.clientHeight;
+				cpuElems.sysUsed.style.height = cpu.value * h / 100 + 'px';
 				cpuElems.sysValue.setAttribute('value', cpu.value + '%');
 
 				var tooltip = getString('sbexCpuTooltipSys');
@@ -166,8 +182,8 @@
 			sm.GetFxCpuUsage(cpu);
 			if (cpu.value != cpuCache.fx) {
 				cpuCache.fx = cpu.value;
-				var w = cpuElems.fxImage.getBoundingClientRect();
-				cpuElems.fxUsed.style.height = cpu.value * w.height / 100 + 'px';
+				var h = cpuElems.fxImage.clientHeight;
+				cpuElems.fxUsed.style.height = cpu.value * h / 100 + 'px';
 				cpuElems.fxValue.setAttribute('value', cpu.value + '%');
 	
 				var tooltip = getString('sbexCpuTooltipFx');
@@ -178,31 +194,197 @@
 	}
 
 
-	netCache = {index: -1};
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	/* network */
+	var netCache = {index: -1, inMax: -1, outMax: -1};
 	function updateNetwork() {
-		if (!config.network) {
+		if (!config.network && !config.detailsOpen) {
 			return;
 		}
 
 		var netIndex = config.netIndex;
-		var inSpeed = {value: 0}, outSpeed = {value: 0};
-		sm.GetEthernetSpeed(netIndex, inSpeed, outSpeed);
-		var value = getString('sbexNetworkTemplate');
-		value = value.replace(/%down%/, formatSpeed(inSpeed.value)).replace(/%up%/, formatSpeed(outSpeed.value));
-		netElems.value.setAttribute('value', value);
-
 		if (netIndex != netCache.index) {
 			var count = sm.GetEthernetCount();
 			if (count > 0) { // when get 0, the DLL is not ready
+
+				histories.networkIn.clear();
+				histories.networkOut.clear();
+
 				netCache.index = netIndex;
 				var name = {value: ''};
 				sm.GetEthernetName(netIndex, name);
 				netElems.container.setAttribute('tooltiptext', name.value);
+				netElems.detailName.setAttribute('value', name.value);
+				netElems.detailName.setAttribute('tooltiptext', name.value);
+			} else {
+				return;
+			}
+		}
+
+		var inSpeed = {value: 0}, outSpeed = {value: 0};
+		sm.GetEthernetSpeed(netIndex, inSpeed, outSpeed);
+
+		if (config.network) {
+			var value = getString('sbexNetworkTemplate');
+			value = value.replace(/%down%/, formatSpeed(inSpeed.value)).replace(/%up%/, formatSpeed(outSpeed.value));
+			netElems.value.setAttribute('value', value);
+		}
+
+		histories.networkIn.push(inSpeed.value);
+		histories.networkOut.push(outSpeed.value);
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	/** update the details panel **/
+	function initDetailsPanel() {
+		var ids = ['sbex-network-value'];
+		for (var i = 0, l = ids.length; i < l; ++ i) {
+			var elem = document.getElementById(ids[i]);
+			elem.onclick = showDetails;
+		}
+		window.addEventListener('popuphidden', onHidden, false);
+
+		// pin
+		var pin = document.getElementById('sbex-details-pin');
+		pin.onclick = function() {
+			var panel = document.getElementById('sbex-details');
+			var noautohide = (panel.getAttribute('noautohide') != 'true');
+			panel.setAttribute('noautohide', noautohide);
+			if (noautohide) {
+				addClass(this, 'sbex-details-pinned');
+			} else {
+				removeClass(this, 'sbex-details-pinned');
+			}
+			reopenPanel(panel);
+		}
+
+		// close
+		document.getElementById('sbex-details-close').onclick = function() {
+			var panel = document.getElementById('sbex-details');
+			panel.hidePopup();
+		}
+
+		// canvas config
+		ids = ['sbex-detail-network-in', 'sbex-detail-network-out'];
+		for (var i = 0, l = ids.length; i < l; ++ i) {
+			var elem = document.getElementById(ids[i]);
+			elem.width = 120;
+			elem.height = 50;
+		}
+
+		var x = undefined, y = undefined;
+		function onHidden(evt) {
+			if (evt.target.id == 'sbex-details') {
+				var box = evt.target.boxObject;
+				x = box.screenX;
+				y = box.screenY;
+
+				config.detailsOpen = false;
+			}
+		}
+
+		function reopenPanel(panel) {
+			panel.hidePopup();
+			panel.openPopupAtScreen(x, y, false);
+			config.detailsOpen = true;
+		}
+
+		function showDetails(evt) {
+			if (evt.button != 0) {
+				return;
+			}
+			var panel = document.getElementById('sbex-details');
+			if (panel.state == 'closed') {
+				if (x === undefined || y === undefined) {
+					panel.openPopup(netElems.container, 'before_end', 0, 0, false);
+				} else {
+					panel.openPopupAtScreen(x, y, false);
+				}
+				config.detailsOpen = true;
+			} else {
+				panel.hidePopup();
 			}
 		}
 	}
 
+	function updateDetails() {
+		var details = document.getElementById('sbex-details');
+		if (details.state != 'open') {
+			return;
+		}
 
+		updateSpeedCanvas(histories.networkIn, 'in');
+		updateSpeedCanvas(histories.networkOut, 'out');
+	}
+
+	function updateSpeedCanvas(data, inout) {
+		var x, y;
+		var max = -1;
+		for (var i = 0, l = data.size(); i < l; ++ i) {
+			var t = data.get(i);
+			if (t > max) {
+				max = t;
+			}
+		}
+		max = getBoundaryValue(max);
+		if (max != netCache[inout + 'Max']) {
+			netCache[inout + 'Max'];
+			document.getElementById('sbex-detail-network-speed-' + inout)
+				.setAttribute('value', formatSpeed(max) + '/s');
+		}
+
+		// draw the canvas
+		var canvas = document.getElementById('sbex-detail-network-' + inout);
+		var ctx = canvas.getContext('2d');
+		ctx.save();
+
+		var width = canvas.width;
+		var height = canvas.height;
+
+		ctx.clearRect(0, 0, width, height);
+
+		// grid
+		ctx.beginPath();
+
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = '#303030';
+
+		y = height % 2 == 0 ? (height / 2 + 0.5) : (height / 2);
+		ctx.moveTo(0.5, y);
+		ctx.lineTo(width - 0.5, y);
+
+		for (var i = 1; i < 6; ++ i) {
+			x = width * i;
+			x = x % 6 == 0 ? (x / 6 + 0.5) : Math.floor(x / 6 + 0.5) - 0.5;
+			ctx.moveTo(x, 0.5);
+			ctx.lineTo(x, height - 0.5);
+		}
+		ctx.stroke();
+
+		// speed
+		ctx.beginPath();
+
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = 'green';
+
+		ctx.moveTo(0, height - 1);
+		for (var i = 0, l = data.size(); i < l; ++ i) {
+			y = data.get(i);
+			y = max == 0 ? height : Math.floor((max - y) * height / max + 0.5);
+			if (y == height) {
+				-- y;
+			}
+			y -= 0.5;
+			ctx.lineTo(i * 2 + 0.5, y);
+		}
+		ctx.stroke();
+
+		ctx.restore();
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	/** utilities **/
 	function getString(name) {
 		try {
 			var str = strings.GetStringFromName(name);
@@ -229,8 +411,25 @@
 		}
 	}
 
-	function showSbexMenu(e) {
-		if (e.button != 0) {
+	/**
+	 * for the speed, return a proper boundary value, for example:
+	 * if the max speed is 15K, then the boundary value is 20K.
+	 */
+	function getBoundaryValue(value) {
+		if (value < 1024 * 100) {
+			return Math.floor((value + 1024 * 10 - 1) / (1024 * 10)) * 1024 * 10;
+		} else if (value < 1024 * 1000) {
+			return Math.floor((value + 1024 * 100 - 1) / (1024 * 100)) * 1024 * 100;
+		} else {
+			return Math.floor((value + 1024 * 1024 - 1) / (1024 * 1024)) * 1024 * 1024;
+		}
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	/** popup related **/
+	function showSbexMenu(evt) {
+		if (evt.button != 0) {
 			return;
 		}
 		var menu = document.getElementById('sbex-list');
@@ -287,8 +486,8 @@
 		}
 	}
 
-	function showNetworkMenu(e) {
-		if (e.button != 0) {
+	function showNetworkMenu(evt) {
+		if (evt.button != 0) {
 			return;
 		}
 		var menu = document.getElementById('sbex-network-list');
@@ -327,6 +526,8 @@
 		}
 	}
 
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	// pref relative
 	function removeClass(e, cls) {
 		var className = e.className;
@@ -482,11 +683,60 @@
 
 	function showHomepage() {
 		getBrowser().removeEventListener('load', arguments.callee, true);
-		// var homepg = 'http://www.xilou.us/home/statusbarex';
-		// var homepg = 'http://www.google.com.hk';
 		var homepg = 'http://www.enjoyfreeware.org/sbex';
 		
 		getBrowser().selectedTab = getBrowser().addTab(homepg); 
 	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	/* A fixed size, FIFO array (queue) */
+	function FixedQueue(capacity) {
+		capacity = capacity ? capacity : 10;
+
+		var data = new Array(capacity + 1);
+		var begin = 0, end = 0;
+
+		this.capacity = function() {
+			return capacity;
+		}
+
+		this.push = function(v) {
+			data[end ++] = v;
+			if (end > capacity) {
+				end = 0;
+			}
+
+			if (end == begin) {
+				if (++ begin > capacity) {
+					begin = 0;
+				}
+			}
+		}
+
+		this.size = function() {
+			if (end >= begin) {
+				return end - begin;
+			} else {
+				return capacity;
+			}
+		}
+
+		this.get = function(idx) {
+			if (idx >= capacity) {
+				return undefined;
+			}
+
+			return data[(begin + idx) % (capacity + 1)];
+		}
+
+		this.clear = function(clearData) {
+			begin = end = 0;
+			if (clearData) {
+				data = new Array(capacity + 1);
+			}
+		}
+
+	};
 
 })();

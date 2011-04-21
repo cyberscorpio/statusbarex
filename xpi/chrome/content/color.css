@@ -79,6 +79,16 @@
 	background-position: 0 -16px;
 }
 
+/*
+#sbex-details-pin:hover {
+	background-position: -16px 0;
+}
+
+#sbex-details-pin.sbex-details-pinned:hover {
+	background-position: -16px -16px;
+}
+*/
+
 #sbex-details-close {
 	background-image: url("chrome://global/skin/icons/close.png");
 }

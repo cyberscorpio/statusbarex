@@ -23,7 +23,7 @@
     <em:description>Display information on the addon-bar, such as memory usage, CPU usage, network speed, and so on.</em:description>
     <em:creator>dou dehou</em:creator>
 	<!--<em:optionsURL>chrome://statusbarex/content/options.xul</em:optionsURL>-->
-	<em:homepageURL>http://www.xilou.us/home/statusbarex</em:homepageURL>
+	<em:homepageURL>http://www.enjoyfreeware.org/sbex</em:homepageURL>
 	<em:iconURL>chrome://statusbarex/content/logo.png</em:iconURL>
   </Description>      
 </RDF>

@@ -674,6 +674,10 @@
 				if(ver != addon.version) {
 					if(window.navigator.onLine) {
 						sbprefs.setCharPref(vk, addon.version);
+						/**
+						 * please notes that the 'true', is because the 'event.bubbles' is false
+						 * so the event won't be bubbled to the browser
+						 */
 						getBrowser().addEventListener('load', showHomepage, true);
 					}
 				}

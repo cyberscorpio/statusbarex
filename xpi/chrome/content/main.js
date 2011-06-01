@@ -9,7 +9,7 @@
 	var strings = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService).createBundle("chrome://statusbarex/locale/main.properties");
 	var sbprefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 	var tm = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
-	var sm = Cc["@doudehou/statusbarEx;1"].createInstance(Ci.IStatusbarExCore);
+	var sm = Cc["@enjoyfreeware.org/statusbarex;1"].createInstance(Ci.IStatusbarExCore);
 
 	var config = {
 		memory: true,

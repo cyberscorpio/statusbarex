@@ -400,7 +400,6 @@ try {
 
 	function getValueFromFileTime(ft) {
 		var value = ctypes.UInt64.join(ft.dwHighDateTime, ft.dwLowDateTime);
-		// logger.logStringMessage('value: ' + value);
 		return value.toString() - 0;
 	}
 }
@@ -422,56 +421,6 @@ StatusbarExObj.prototype = {
 	 */
 	// QueryInterface: XPCOMUtils.generateQI([ssIObserverable, ssIConfig, ssISiteManager, ssITodoList]),
 	QueryInterface: XPCOMUtils.generateQI([IStatusbarExCore]),
-
-
-	/////////////////////////////////////////
-	// utilies
-
-	// below file I/O is copied from:
-	// - https://developer.mozilla.org/en/Code_snippets/File_I%2f%2fO
-	/**
-	 * @param file is nsIFile
-	 * @return the content of the file, as a string
-	 */
-	fileGetContents: function(file) {
-		var is = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
-		var cs = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);
-		is.init(file, -1, 0, 0);
-		cs.init(is, "UTF-8", 0, 0); // you can use another encoding here if you wish
-		
-		var data = '';
-		let (str = {}) {
-			let read = 0;
-			do { 
-				read = cs.readString(0xffffffff, str); // read as much as we can and put it in str.value
-				data += str.value;
-			} while (read != 0);
-		}
-		cs.close(); // this closes 'is'
-		
-		return data;
-	},
-
-	/**
-	 * @param file is nsIFile
-	 * @param data is a string
-	 */
-	filePutContents: function(file, data) {
-		var os = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-		
-		// use 0x02 | 0x10 to open file for appending.
-		os.init(file, 0x02 | 0x08 | 0x20, FileUtils.PERMS_FILE, 0); 
-		// write, create, truncate
-		// In a c file operation, we have no need to set file mode with or operation,
-		// directly using "r" or "w" usually.
-		
-		// if you are sure there will never ever be any non-ascii text in data you can 
-		// also call foStream.writeData directly
-		var converter = Cc["@mozilla.org/intl/converter-output-stream;1"].createInstance(Ci.nsIConverterOutputStream);
-		converter.init(os, "UTF-8", 0, 0);
-		converter.writeString(data);
-		converter.close(); // this closes os
-	},
 };
 
 /**

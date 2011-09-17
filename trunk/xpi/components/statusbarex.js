@@ -108,21 +108,45 @@ try {
 	var psapi = ctypes.open('psapi.dll');
 	var iphlpapi = ctypes.open('iphlpapi.dll');
 
+
+	// the ABI code is copied from: http://forums.mozillazine.org/viewtopic.php?p=10255979
+	// I don't know whether it works or not...
+	if (ctypes.size_t.size == 8) {
+		var CallBackABI = ctypes.default_abi;
+		var WinABI = ctypes.default_abi;
+	} else {
+		var CallBackABI = ctypes.stdcall_abi;
+		var WinABI = ctypes.winapi_abi;
+	}
+
+	// MultiByteToWideChar
+	var fnMultiByteToWideChar = kernel32.declare('MultiByteToWideChar',
+			WinABI,
+			ctypes.int32_t,
+			ctypes.uint32_t, // code page
+			ctypes.uint32_t, // flag
+			ctypes.char.ptr, // 
+			ctypes.int32_t,
+			ctypes.jschar.ptr,
+			ctypes.int32_t);
+
+
+
 	// GlobalMemoryStatusEx
 	var fnGlobalMemoryStatusEx = kernel32.declare('GlobalMemoryStatusEx',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.uint32_t,
 			MEMORYSTATUSEX.ptr);
 
 	// GetCurrentProcess
 	var fnGetCurrentProcess = kernel32.declare('GetCurrentProcess',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.voidptr_t);
 	var currentProcess = fnGetCurrentProcess();
 
 	// GetProcessTimes
 	var fnGetProcessTimes = kernel32.declare('GetProcessTimes',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.uint32_t,
 			ctypes.voidptr_t,
 			FILETIME.ptr,
@@ -132,7 +156,7 @@ try {
 
 	// GetSystemTimes
 	var fnGetSystemTimes = kernel32.declare('GetSystemTimes',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.uint32_t,
 			FILETIME.ptr,
 			FILETIME.ptr,
@@ -140,7 +164,7 @@ try {
 
 	// GetSystemInfo
 	var fnGetSystemInfo = kernel32.declare('GetSystemInfo',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.void_t,
 			SYSTEM_INFO.ptr);
 	var si = SYSTEM_INFO();
@@ -149,7 +173,7 @@ try {
 
 	// GetProcessMemoryInfo
 	var fnGetProcessMemoryInfo = psapi.declare('GetProcessMemoryInfo',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.uint32_t,
 			ctypes.voidptr_t,
 			PROCESS_MEMORY_COUNTERS.ptr,
@@ -157,7 +181,7 @@ try {
 
 	// GetIfTable
 	var fnGetIfTable = iphlpapi.declare('GetIfTable',
-			ctypes.winapi_abi,
+			WinABI,
 			ctypes.uint32_t,
 			MIB_IFTABLE.ptr,
 			ctypes.uint32_t.ptr,
@@ -367,12 +391,20 @@ try {
 			entry.out_octets = row.dwOutOctets;
 			if (entry.name === undefined) {
 				entry.name = '';
-				var n = row.dwDescrLen;
+				let n = row.dwDescrLen;
 				if (n > 1) {
 					-- n;
 				}
-				for (var k = 0; k < n; ++ k) {
-					entry.name += String.fromCharCode(row.bDescr[k]);
+				if (n > 0) {
+					let bDesc = new ctypes.ArrayType(ctypes.char)(n);
+					for (let k = 0; k < n; ++ k) {
+						bDesc[k] = row.bDescr[k];
+					}
+					let Name = new ctypes.ArrayType(ctypes.jschar)(n * 2);
+					let len = fnMultiByteToWideChar(0, 0, bDesc, n, Name, n * 2);
+					for (let k = 0; k < len; ++ k) {
+						entry.name += Name[k];
+					}
 				}
 			}
 

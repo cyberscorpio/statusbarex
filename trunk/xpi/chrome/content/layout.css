@@ -90,6 +90,14 @@
 	width: 90px;
 }
 
+/* Thanks for lfm (394251303@qq.com) */
+#sbex-network-selector {
+  -moz-appearance: none !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  padding: 0 2px !important;
+}
+
 /* details */
 #sbex-details {
 	/*

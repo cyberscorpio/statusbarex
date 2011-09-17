@@ -205,6 +205,11 @@
 		var netIndex = config.netIndex;
 		if (netIndex != netCache.index) {
 			var count = sm.GetEthernetCount();
+			if (netIndex >= count) {
+				netIndex = 0;
+				sbprefs.setIntPref('extensions.sbex.networkIndex', netIndex);
+			}
+
 			if (count > 0) { // when get 0, the DLL is not ready
 
 				histories.networkIn.clear();

@@ -21,7 +21,7 @@ interface IStatusbarExCore : nsISupports
 
 	long GetEthernetCount();
 	void GetEthernetSpeed(in long index, out long in_speed, out long out_speed);
-	void GetEthernetName(in long index, out DOMString name);
+	void GetEthernetName(in long index, out AString name);
 
 	/**
 	 * @ACLineStatus:

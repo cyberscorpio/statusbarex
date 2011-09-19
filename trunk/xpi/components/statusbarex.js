@@ -125,7 +125,7 @@ try {
 			ctypes.int32_t,
 			ctypes.uint32_t, // code page
 			ctypes.uint32_t, // flag
-			ctypes.char.ptr, // 
+			ctypes.unsigned_char.ptr, // 
 			ctypes.int32_t,
 			ctypes.jschar.ptr,
 			ctypes.int32_t);
@@ -396,7 +396,7 @@ try {
 					-- n;
 				}
 				if (n > 0) {
-					let bDesc = new ctypes.ArrayType(ctypes.char)(n);
+					let bDesc = new ctypes.ArrayType(ctypes.unsigned_char)(n);
 					for (let k = 0; k < n; ++ k) {
 						bDesc[k] = row.bDescr[k];
 					}

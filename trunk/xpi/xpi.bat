@@ -7,7 +7,7 @@ call build-idl.bat
 if exist statusbarex.xpi goto deletexpi
 
 : createxpi
-call 7z.exe a statusbarex.xpi * -r -x!*.bat -x!*.tmp -x!*.swp -x!*.svn -x!*.zip -x!*.git -x!*.php -x!tags -x!*.idl
+call 7z.exe a statusbarex.xpi * -r -x!*.bat -x!*.tmp -x!*.swp -x!*.svn -x!*.zip -x!*.git -x!*.php -x!tags -x!*.idl -x!*.xpi
 @goto end
 
 :deletexpi

@@ -22,6 +22,13 @@ function StatusbarExObj() {
 	var logger = this.logger;
 
 try {
+	// thread
+	const SECURITY_ATTRIBUTES = new ctypes.StructType('SECURITY_ATTRIBUTES',
+		[
+			{nLength: ctypes.uint32_t},
+			{lpSecurityDesciptor: ctypes.voidptr_t},
+			{bInheritHandle: ctypes.int32_t}
+		]);
 	// memory 
 	const MEMORYSTATUSEX = new ctypes.StructType('MEMORYSTATUSEX',
 		[
@@ -119,6 +126,61 @@ try {
 		var WinABI = ctypes.winapi_abi;
 	}
 
+	// thread proc
+	var THREADPROC = ctypes.FunctionType(
+			//WinABI,
+			CallBackABI,
+			ctypes.uint32_t,
+			[ctypes.voidptr_t]
+			);
+
+	// CreateThread
+	var fnCreateThread = kernel32.declare('CreateThread',
+			WinABI,
+			ctypes.voidptr_t, // HANDLE
+			SECURITY_ATTRIBUTES.ptr,
+			ctypes.uint32_t,
+			THREADPROC.ptr,
+			ctypes.voidptr_t, // parameter
+			ctypes.uint32_t, // flag,
+			ctypes.uint32_t.ptr // id
+			);
+
+	// sleep
+	var fnSleep = kernel32.declare('Sleep',
+			WinABI,
+			ctypes.void_t,
+			ctypes.uint32_t
+			);
+
+	// CreateSemaphore
+	var fnCreateSemaphore = kernel32.declare('CreateSemaphoreW',
+			WinABI,
+			ctypes.voidptr_t, // HANDLE
+			SECURITY_ATTRIBUTES.ptr,
+			ctypes.int32_t, // init count
+			ctypes.int32_t, // max count
+			ctypes.jschar.ptr // name
+			);
+
+	// WaitForSingleObject
+	var fnWaitForSingleObject = kernel32.declare('WaitForSingleObject',
+			WinABI,
+			ctypes.uint32_t,
+			ctypes.voidptr_t,
+			ctypes.uint32_t
+			);
+
+	// ReleaseSemaphore
+	var fnReleaseSemaphore = kernel32.declare('ReleaseSemaphore',
+			WinABI,
+			ctypes.uint32_t,
+			ctypes.voidptr_t,
+			ctypes.int32_t,
+			ctypes.int32_t.ptr
+			);
+
+
 	// MultiByteToWideChar
 	var fnMultiByteToWideChar = kernel32.declare('MultiByteToWideChar',
 			WinABI,
@@ -187,6 +249,30 @@ try {
 			ctypes.uint32_t.ptr,
 			ctypes.uint32_t);
 
+
+	////////////////////////////////////////////////
+	// sync
+	var semaphore = (function() {
+		var sa = SECURITY_ATTRIBUTES();
+		sa.nLength = SECURITY_ATTRIBUTES.size;
+		sa.lpSecurityDesciptor = new ctypes.voidptr_t(0);
+		sa.bInheritHandle = 0;
+		return fnCreateSemaphore(sa.address(), 1, 1, new ctypes.jschar.ptr(0));
+	})();
+
+	var _INFINIT = new ctypes.uint32_t(4294967295);
+	var _TRY_TIMEOUT = new ctypes.uint32_t(100);
+	var _RELEASE_ONE = new ctypes.int32_t(1);
+	var _PREV_COUNT = new ctypes.int32_t(0);
+	function enter() {
+		fnWaitForSingleObject(semaphore, _INFINIT);
+	}
+	function tryEnter() {
+		return (fnWaitForSingleObject(semaphore, _TRY_TIMEOUT) != 258);
+	}
+	function leave() {
+		return fnReleaseSemaphore(semaphore, _RELEASE_ONE, _PREV_COUNT.address());
+	}
 
 	////////////////////////////////////////////////
 	// Memory usage 
@@ -316,24 +402,31 @@ try {
 	var ethernetEntry = [];
 	var ethernetTick = 0;
 	this.GetEthernetCount = function() {
-		updateEthernet();
-		return ethernetEntry.length;
+		// updateEthernet();
+		enter();
+		var l = ethernetEntry.length;
+		leave();
+		return l;
 	}
 
 	this.GetEthernetSpeed = function(index, in_speed, out_speed) {
-		updateEthernet();
+		// updateEthernet();
+		enter();
 		if (index >= 0 && index < ethernetEntry.length) {
 			var entry = ethernetEntry[index];
 			in_speed.value = entry.in_speed;
 			out_speed.value = entry.out_speed;
 		}
+		leave();
 	}
 
 	this.GetEthernetName = function(index, name) {
-		updateEthernet();
+		// updateEthernet();
+		enter();
 		if (index >= 0 && index < ethernetEntry.length) {
 			name.value = ethernetEntry[index].name;
 		}
+		leave();
 	}
 
 	var ethernetUpdateTime = 0;
@@ -353,6 +446,8 @@ try {
 				++ count;
 			}
 		}
+
+		enter();
 
 		// reset entries
 		if (count != ethernetEntry.length) {
@@ -414,6 +509,7 @@ try {
 			}
 		}
 		ethernetTick = tick;
+		leave();
 	}
 
 
@@ -426,6 +522,25 @@ try {
 	}
 
 
+	function thread(parameter) {
+		while(true) {
+			fnSleep(1000);
+			updateEthernet();
+		}
+		return 0;
+	}
+	var threadptr = THREADPROC.ptr(thread);
+
+	var sa = SECURITY_ATTRIBUTES();
+	sa.nLength = SECURITY_ATTRIBUTES.size;
+	sa.lpSecurityDesciptor = new ctypes.voidptr_t(0);
+	sa.bInheritHandle = 0;
+	var threadId = ctypes.uint32_t(0);
+
+	// update before thread
+	updateEthernet();
+	fnCreateThread(sa.address(), 0, threadptr, new ctypes.voidptr_t(0), 0, threadId.address());
+
 } catch (e) {
 	logger.logStringMessage('***********' + e + '**********');
 }
@@ -434,31 +549,18 @@ try {
 		var value = ctypes.UInt64.join(ft.dwHighDateTime, ft.dwLowDateTime);
 		return value.toString() - 0;
 	}
+
 }
 
+
 StatusbarExObj.prototype = {
-	// 9A15453F-2D14-42E5-91EA-09A32E88FF39
 	classID: Components.ID("{9A15453F-2D14-42E5-91EA-09A32E88FF39}"),
-	/**
-	 * .classDescription and .contractID are only used for backwards compatibility
-	 * with Gecko 1.9.2 and XPCOMUtils.generateNSGetModule.
-	 * in gecko 2, the information is in chrome.manifest
-	 */
 	classDescription: 'StatusbarExCoreObject',
 	contractID: '@enjoyfreeware.org/statusbarex;1',
 
-	/**
-	 * List all the interfaces your component supports.
-	 * @note nsISupports is generated automatically; you don't need to list it.
-	 */
-	// QueryInterface: XPCOMUtils.generateQI([ssIObserverable, ssIConfig, ssISiteManager, ssITodoList]),
 	QueryInterface: XPCOMUtils.generateQI([IStatusbarExCore]),
 };
 
-/**
- * XPCOMUtils.generateNSGetFactory was introduced in Mozilla 2 (Firefox 4).
- * XPCOMUtils.generateNSGetModule is for Mozilla 1.9.2 (Firefox 3.6).
- */
 if (XPCOMUtils.generateNSGetFactory) {
 	var NSGetFactory = XPCOMUtils.generateNSGetFactory([StatusbarExObj]);
 } else {
